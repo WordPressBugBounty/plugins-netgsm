@@ -1,0 +1,359 @@
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {display:none;}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2ECC71;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+mark {
+  background-color: #2ECC71;
+  font-weight: normal;
+  font-style: normal;
+  color:white;
+  cursor: pointer;
+  transition: all .2s ease-in-out;
+}
+mark:hover{
+  background-color: #2F4050;
+  transform: scale(1.1);
+}
+.bulkmark{
+  background-color: #BB77AE;
+  font-weight: normal;
+  font-style: normal;
+  color:white;
+  cursor: pointer;
+  transition: all .2s ease-in-out;
+}
+.bulkmark:hover{
+  background-color: #2F4050;
+  transform: scale(1.1);
+}
+
+.checkbox-fix {
+  margin-bottom: 7px;
+}
+
+.hoverlay:hover{
+  color: white;
+  background-color: #BDC3C7;
+  cursor: pointer;
+}
+
+.netiys_type_container {
+  display: block;
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: normal ;
+  color: #2c3338 ;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.netiys_type_container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 15px;
+  width: 15px;
+  background-color: #eee;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.netiys_type_container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.netiys_type_container .checkmark:after {
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid #17A2B8;
+  border-width: 0 2px 2px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+
+.portal-table {
+  width:280px;
+  border-radius:10px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+}
+.portal-table h6{
+  font-size:16px;
+  color:#3e3d59;
+  padding:0px;
+  margin:0px;
+  font-weight:400;
+}
+
+.netasistan_itemContent-input#netasistan-form{
+  display: none;
+}
+
+.netasistan-logo{
+  position: fixed;
+  right: 1.6%;
+  bottom: 2%;
+}
+.netasistan-header{
+  width:100%;
+  background-color:#545ea5;
+  border-radius:5px 5px 0 0;
+  margin-bottom: 10px;
+  height: 45px;
+}
+
+.netasistan-headerlogo{
+  margin-bottom: 3px;
+  margin-left: 15px;
+  margin-top: 13px;
+  float: left;
+}
+
+.netasistan-headertype{
+  color: #fff;
+  float: left;
+  font-size:14px;
+  margin-top: 13px;
+  margin-left: 10px;
+
+}
+
+.closeicon{
+  float: left;
+  color:#FFF;
+  margin-top:7px;
+  opacity:0.5;
+  font-size:16px;
+  width: 10px;
+  margin-left: 20px;
+
+}
+.closeicon:hover{
+  cursor:pointer;
+  opacity:1;
+}
+
+
+
+
+
+#connect-close{
+  display: block;
+}
+
+
+.netasistan_itemContent {
+  padding:6px 6px 14px 6px;
+}
+
+.btnItem {
+  padding:5px 5px;
+}
+
+.btnItem:hover {
+  background:#e8f0fe;
+  cursor:pointer;
+
+}
+.btnItem h6:hover {
+  color:#0044d3;
+
+}
+
+.squareIcon {
+  width:32px;
+  height:30px;
+  color:#e57e39;
+  padding:6px 8px;
+  margin-right:5px;
+}
+
+i.squareIcon  {
+  font-size:20px;
+  display: inline;
+}
+
+
+.squareIcon .mesajBg {
+  color:#fec12a;
+  font-size:20px;
+  padding: 7px 11px;
+}
+.squareIcon.aramaBg {
+  color:#0b2768;
+  font-size:20px;
+  padding: 7px 11px;
+}
+.squareIcon.epostaBg {
+  color:#1c94d0;
+  font-size:18px;
+}
+.squareIcon.whatsappBg {
+  color:#48b04f;
+  font-size:22px;
+}
+.squareIcon.instagramBg {
+  color:#f30466;
+  font-size:21px;
+}
+.squareIcon.facebookBg {
+  color:#0084ff;
+  font-size:20px;
+}
+.squareIcon.siziarayalımBg {
+  color:#0084ff;
+  padding:8px 8px;
+  font-size:18px;
+}
+.netasistan_itemContent-input {
+  padding:14px 14px;
+}
+.netasistan_itemContent-input .netasistan-input-group{
+  padding:6px 0px;
+}
+
+.netasistan_itemContent-input .netasistan-form-element{
+  display:block;width:100%;padding:6px 12px;font-size:14px;line-height:1.42857143;color:#555;background-color:#fff;background-image:none;border:1px solid #ccc;border-radius:4px;-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,.075);box-shadow:inset 0 1px 1px rgba(0,0,0,.075);-webkit-transition:border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;-o-transition:border-color ease-in-out .15s,box-shadow ease-in-out .15s;transition:border-color ease-in-out .15s,box-shadow ease-in-out .15s
+}
+.netasistan_form-element input{
+  height:34px;
+}
+
+.netasistan_itemContent-input .netasistan-form-element:focus{
+  border-color:#66afe9;outline:0;-webkit-box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);box-shadow:inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6)}
+
+
+.netasistan_itemContent-input .form-btn{
+  display:inline-block;padding:6px 12px;margin-bottom:0;font-size:14px;font-weight:400;line-height:1.42857143;text-align:center;white-space:nowrap;vertical-align:middle;-ms-touch-action:manipulation;touch-action:manipulation;cursor:pointer;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;background-image:none;border:1px solid transparent;border-radius:4px;
+}
+
+.form-btn.btnIptal{
+  border-color: #545ea5;
+  color:#545ea5;
+  background-color: white;
+  margin-top:10px;
+  margin-right:10px;
+}
+.btnIptal:hover{
+  background: #404a7a;
+  border-color: #404a7a;
+  color:#ffffff;
+}
+
+.form-btn.btnGonder{
+  background: #545ea5;
+  border-color: #545ea5;
+  color:#ffffff;
+  margin-top:10px;
+}
+
+.btnGonder:hover{
+  background: #404a7a;
+  border-color: #404a7a;
+}
+
+.baslikinput{
+  color:#3e3d59;
+  font-weight:600;
+  margin-top:3px;
+  margin-left: 3px;
+  display: inline;
+}
+
+
+#connect-menu{
+  display: none;
+}
+#connection-form {
+  display:none;	position:fixed;
+  bottom:100px;
+  right:40px;
+  border-radius:10px;
+  font-family: 'Roboto', sans-serif;
+  background-color: #fff;
+}
+
+
+
+@media (max-width: 767px) {
+
+  .netasistan-logo{
+    position: fixed;
+    right: 1.6%;
+    bottom: 50%;
+  }
+
+}
