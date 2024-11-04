@@ -141,7 +141,7 @@ class WC_REST_Custom_Controller{
     }
 
     public function netgsm_api_permission_callback(){
-        return true;
+        return current_user_can( 'manage_options' );
     }
 
 
