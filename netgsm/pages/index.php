@@ -1,4 +1,7 @@
 <?php
+if (!current_user_can('administrator')) {
+    return;  // Admin olmayan kullanıcılar erişemez
+}
 if (!defined('ABSPATH')) exit;
 $cf7_list = apply_filters('netgsm_contact_form_7_list', '');
 

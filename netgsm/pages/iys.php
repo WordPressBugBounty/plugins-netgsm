@@ -1,3 +1,8 @@
+<?php
+if (!current_user_can('administrator')) {
+    return;  // Admin olmayan kullanıcılar erişemez
+}
+?>
 <div class="tab-pane container-fluid" id="iys"> <!-- İYS ayarları-->
     <hr>
     <div class="form-group">

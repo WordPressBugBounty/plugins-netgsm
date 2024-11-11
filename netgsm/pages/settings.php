@@ -1,3 +1,8 @@
+<?php
+if (!current_user_can('administrator')) {
+    return;  // Admin olmayan kullanıcılar erişemez
+}
+?>
 <div class="tab-pane" id="settings">
     <?php
     if (!in_array($session->roles[0], ['administrator'])) {
