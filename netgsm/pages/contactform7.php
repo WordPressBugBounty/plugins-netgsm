@@ -1,16 +1,11 @@
-<?php
 
-if (!current_user_can('administrator')) {
-    return;  // Admin olmayan kullanıcılar erişemez
-}
-?>
 <div class="tab-pane container-fluid" id="cf7sms"> <!-- CONTACT FORM7 SMS ayarları-->
     <hr>
     <div class="form-group">
         <div class="row">
             <div class="col-sm-3">
                 <div class="col-sm-7">
-                    <label class="control-label" for="netgsm_cf7_success_customer_control"><i class="fa fa-certificate" style="color: #A62F00;"></i> Başarılı Form göndermelerinde sms gönder:</label>
+                    <label class="control-label" for="netgsm_cf7_success_customer_control"><i class="fa fa-certificate" style="color: #A62F00;"></i> Başarılı form göndermelerinde SMS gönder:</label>
                 </div>
                 <div class="col-sm-5">
                     <label class="switch">
@@ -80,7 +75,7 @@ if (!current_user_can('administrator')) {
         <div class="row">
             <div class="col-sm-3">
                 <div class="col-sm-7">
-                    <label class="control-label" for="netgsm_cf7_success_admin_control"><i class="fa fa-certificate" style="color: #A62F00;"></i> Başarılı Form göndermelerinde belirlenen numaralara sms gönder:</label>
+                    <label class="control-label" for="netgsm_cf7_success_admin_control"><i class="fa fa-certificate" style="color: #A62F00;"></i> Başarılı form göndermelerinde belirlenen numaralara SMS gönder:</label>
                 </div>
                 <div class="col-sm-5">
                     <label class="switch">
@@ -153,20 +148,13 @@ if (!current_user_can('administrator')) {
             </div>
         </div>
         <div class="row">
-            <div class="col-sm-3">
-                <div class="col-sm-7">
-                    <label class="control-label" for="netgsm_cf7_contact_control"><i class="fa fa-certificate" style="color: #A62F00;"></i> Başarılı Form göndermelerinde Telefon numarasını Netgsm Rehberine kaydet:</label>
-                </div>
-                <div class="col-sm-5">
-                    <label class="switch">
-                        <input name="netgsm_cf7_contact_control" id="switch_netgsm_cf7_3" type="checkbox" onchange="netgsm_field_onoff_custom('netgsm_cf7_3')" value="1" <?php if (esc_attr(get_option('netgsm_cf7_contact_control')) == 1) { ?>checked <?php } ?>>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
+            
 
             <div class="col-sm-9" id="field_netgsm_cf7_3" style="<?php if (esc_attr(get_option('netgsm_cf7_contact_control')) != 1) { ?>display:none; <?php } ?>">
-                <div class="row">
+                <div class="row" style="
+    margin-top: 30px;
+    margin-left: 30px;
+">
                     <div class="col-sm-12">
                         <div class="input-group">
                             <div class="input-group-addon">

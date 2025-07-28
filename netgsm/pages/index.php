@@ -1,12 +1,13 @@
 <?php
-if (!current_user_can('administrator')) {
-    return;  // Admin olmayan kullanıcılar erişemez
-}
+// if (!current_user_can('administrator')) {
+//     return;  // Admin olmayan kullanıcılar erişemez
+// }
 if (!defined('ABSPATH')) exit;
 $cf7_list = apply_filters('netgsm_contact_form_7_list', '');
 
 $netgsm = new Netgsmsms(get_option("netgsm_user"), get_option("netgsm_pass"), get_option("netgsm_input_smstitle"));
 $cevap = json_decode($netgsm->netgsm_GirisSorgula(get_option("netgsm_user"), get_option("netgsm_pass")));
+
 $sessionid = get_current_user_id();
 $session = new WP_User($sessionid);
 
@@ -26,11 +27,15 @@ if (get_option('netgsm_auth_users') != '') {
 $netgsm_auth_roles_control = get_option('netgsm_auth_roles_control');
 $netgsm_auth_users_control = get_option('netgsm_auth_users_control');
 
-$users = get_users();
+$users = get_users([
+    'number' => -1, // Tüm kullanıcıları getir
+    'orderby' => 'ID',
+    'order'   => 'ASC',
+]);
 
 //yetkilendirme ile ilgili geliştirmeler 16.07.2021
-$cntrl = true;
-$cntrl2 = true;
+$cntrl = false;
+$cntrl2 = false;
 
 foreach ($session->roles as $k => $role) {
     if (in_array($role, ['administrator'])) {
@@ -43,6 +48,8 @@ foreach ($session->roles as $k => $role) {
 //yetkilendirme ile ilgili geliştirmeler 16.07.2021
 
 if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
+
+
     //$netgsm_auth_users_control 0 ise bu özellik kapalıdır ve user bazlı yetki kontrolüne gerek yoktur..
 ?>
     <br>
@@ -70,7 +77,9 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                 </div>
                 <div class="col-md-6 text-right">
                     <div <?php if ($cevap->href != "") { ?>onclick="window.open('<?php echo esc_url($cevap->href); ?>','_blank');" <?php } ?> class="alert alert-<?php echo esc_attr($cevap->durum); ?>" id="bakiye" style="display:inline-block;">
-                        <i class='fa <?php echo esc_attr($cevap->icon); ?>'></i><?php echo esc_html($cevap->mesaj); ?>
+                        <?php if (!empty($cevap->mesaj)) : ?> <i class='fa <?php echo esc_attr($cevap->icon); ?>'></i> <?php echo rtrim(wp_kses_post($cevap->mesaj), ':'); ?><br><?php endif; ?>
+                        <?php if (!empty($cevap->mesajPaket)) : ?> <i class='fa <?php echo esc_attr($cevap->icon); ?>'></i> <?php echo rtrim(wp_kses_post($cevap->mesajPaket), ':'); ?><br><?php endif; ?>
+                        <?php if (!empty($cevap->mesajKredi)) : ?> <i class='fa <?php echo esc_attr($cevap->icon); ?>'></i> <?php echo rtrim(wp_kses_post($cevap->mesajKredi), ':'); ?><br><?php endif; ?>
                     </div>
                 </div>
 
@@ -88,7 +97,7 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                             </li>
                             <li><a href="#bulksms" data-toggle="tab"><i class="fa fa-comments-o"></i> Toplu SMS </a></li>
                             <li><a href="#privatesms" data-toggle="tab"><i class="fa fa-commenting"></i> Özel
-                                    sms</a></li>
+                                    SMS</a></li>
                             <li><a href="#cf7sms" data-toggle="tab"><i class="fa fa-envelope-o"></i> Contact Form7
                                     SMS</a></li>
                             <li><a href="#iys" data-toggle="tab"><i class="fa fa-toggle-on"></i> İYS
@@ -133,9 +142,10 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                         </button>
                                     </div>
                                 </div>
-                                <?php $netgsm_all_smstitle = $netgsm->getSmsBaslik();
-                                $netgsm_input_smstitle = esc_html(get_option("netgsm_input_smstitle")); ?>
+
                                 <div class="form-group">
+                                    <?php $netgsm_all_smstitle = $netgsm->getSmsBaslik();
+                                    $netgsm_input_smstitle = esc_html(get_option("netgsm_input_smstitle")); ?>
                                     <label for="input-baslik" class="col-sm-2 control-label" style="color: <?php if (isset($netgsm_input_smstitle) && !empty($netgsm_input_smstitle) && $netgsm_input_smstitle || $netgsm_input_smstitle != 0) { ?>#2ECC71 <?php } else { ?>#E74C3C <?php } ?>;">
                                         SMS Başlığı :
                                     </label>
@@ -170,7 +180,7 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                         $netgsm_trChar = 0;
                                     } ?>
                                     <label data-toggle="tooltip" data-placement="right" title="SMS lerde yer alan türkçe karakterlerin gidip gitmeyeceğini ayarlayın. Kapalı ise TR karakterler normal karaktere çevrilir. Bir mesajda Türkçe dil seçeneği seçilerek işlem yapılıyorsa 1 boy SMS 155 karakter üzerinden değil 150 karakter üzerinden hesaplanır. Burada düşen 5 karakter mesajın Türkçe Karakterleride desteklemesi için harcanıyor, yani 150 tane Türkçe karakter kullanabilirim demek değildir. 150 tane karakter hakkım var, içinde Türkçe karakterlerde kullanabilirim anlamına gelir.
-Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " class="col-sm-2 control-label" for="input-status" style="color: <?php if (isset($netgsm_trChar) && !empty($netgsm_trChar) && $netgsm_trChar) { ?>#2ECC71<?php } else { ?>#E74C3C<?php } ?>;">SMS
+                                        Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " class="col-sm-2 control-label" for="input-status" style="color: <?php if (isset($netgsm_trChar) && !empty($netgsm_trChar) && $netgsm_trChar) { ?>#2ECC71<?php } else { ?>#E74C3C<?php } ?>;">SMS
                                         Türkçe Karakter: </label>
                                     <div class="col-sm-10">
                                         <div class="input-group">
@@ -194,6 +204,46 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                         </div>
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <?php
+                                    $netgsm_iys_control = esc_html(get_option("netgsm_iys_control"));
+                                    $netgsm_brandcode_control = esc_html(get_option("netgsm_brandcode_control"));
+                                    ?>
+                                    <label data-toggle="tooltip" data-placement="right" title="* Hesabınıza tanımlı marka kodunuz bulunmuyorsa Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.) seçilmelidir." class="col-sm-2 control-label" for="input-status" style="color: <?php echo (!empty($netgsm_iys_control)) ? '#2ECC71' : '#E74C3C'; ?>;">Mesaj içerik Türü:</label>
+
+                                    <div class="col-sm-10">
+                                        <div class="input-group">
+                                            <div class="input-group-addon">
+                                                <i class="fa fa-envelope" style="color: <?php echo (!empty($netgsm_iys_control)) ? '#2ECC71' : '#E74C3C'; ?>;"></i>
+                                            </div>
+                                            <select name="netgsm_iys_control" id="input-iysControl" class="form-control" style="height: 35px;" onchange="kontrolEt(this)">
+                                                <option value="" <?php echo empty($netgsm_iys_control) ? 'selected' : ''; ?>>Mesaj içerik türü seçiniz</option>
+                                                <option value="1" <?php echo $netgsm_iys_control == '1' ? 'selected' : ''; ?>> Kampanya, tanıtım, kutlama vb. (İYS'ye bireysel kayıtlı alıcılarınıza gönderilir.)</option>
+                                                <option value="2" <?php echo $netgsm_iys_control == '2' ? 'selected' : ''; ?>>Kampanya, tanıtım, kutlama vb. (İYS'ye tacir kayıtlı alıcılarınıza gönderilir.)</option>
+                                                <option value="3" <?php echo $netgsm_iys_control == '3' ? 'selected' : ''; ?>>Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.)</option>
+                                            </select>
+                                        </div>
+                                        <p id="iys_uyari_mesaji" style="color:red; margin-top:5px; display:none;"></p>
+                                    </div>
+                                    <script>
+                                        function kontrolEt(selectedElement) {
+                                            const netgsm_brandcode_control = <?php echo (int) ($netgsm_brandcode_control ?? 0); ?>;
+                                            const netgsm_iys_control = "<?php echo esc_js(trim($netgsm_iys_control)); ?>";
+                                            const uyari = document.getElementById("iys_uyari_mesaji");
+                                            const selectedValue = selectedElement.value;
+                                            if (netgsm_brandcode_control == 0 && (selectedValue == "1" || selectedValue == "2")) {
+                                                uyari.innerText = "Marka kodunuz olmadığı için bu mesaj türünü seçemezsiniz. IYS bölümünden brandcode ekleyiniz.";
+                                                uyari.style.display = "block";
+                                                selectedElement.value = netgsm_iys_control;
+                                            } else {
+                                                uyari.innerText = "";
+                                                uyari.style.display = "none";
+                                            }
+                                        }
+                                    </script>
+
+                                </div>
+
 
                                 <hr>
                                 <hr>
@@ -244,7 +294,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                             <div class="col-sm-7">
                                                 <label class="control-label" for="netgsm_newuser_to_admin_no"><i class="fa fa-certificate" style="color: #E74C3C;"></i>
                                                     <i class="fa fa-certificate" style="color: #BB77AE;"></i> Yeni
-                                                    üye olunca, belirlenen numaralara sms gönderilsin:</label>
+                                                    üye olunca, belirlenen numaralara SMS gönderilsin:</label>
                                             </div>
                                             <div class="col-sm-5">
                                                 <label class="switch">
@@ -297,7 +347,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                             <div class="col-sm-7">
                                                 <label class="control-label" for="netgsm_newuser_to_customer_no"><i class="fa fa-certificate" style="color: #E74C3C;"></i>
                                                     <i class="fa fa-certificate" style="color: #BB77AE;"></i> Yeni
-                                                    üye olunca, müşteriye sms gönderilsin:</label>
+                                                    üye olunca, müşteriye SMS gönderilsin:</label>
                                             </div>
                                             <div class="col-sm-5">
                                                 <label class="switch">
@@ -395,6 +445,14 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                         },
                                         'conf12': {
                                             'name': 'netgsm_newnote2_to_customer_json',
+                                            'settings': {
+                                                'source': 'yes',
+                                                'timecondition': 'yes',
+                                                'otherAction': 'no'
+                                            }
+                                        },
+                                        'conf13': {
+                                            'name': 'netgsm_abandoned_cart_to_admin_json',
                                             'settings': {
                                                 'source': 'yes',
                                                 'timecondition': 'yes',
@@ -570,7 +628,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                         <div class="col-sm-3">
                                             <div class="col-sm-7">
                                                 <label class="control-label" for="netgsm_neworder_to_admin_no"><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Yeni sipariş geldiğinde, belirlenen numaralara sms gönderilsin:</label>
+                                                    Yeni sipariş geldiğinde, belirlenen numaralara SMS gönderilsin:</label>
                                             </div>
                                             <div class="col-sm-5">
                                                 <label class="switch">
@@ -622,7 +680,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                         <div class="col-sm-3">
                                             <div class="col-sm-7">
                                                 <label class="control-label" for="netgsm_neworder_to_customer_no"><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Yeni sipariş geldiğinde, Müşteriye bilgilendirme sms
+                                                    Yeni sipariş geldiğinde, müşteriye bilgilendirme SMS'i
                                                     gönderilsin:</label>
                                             </div>
                                             <div class="col-sm-5">
@@ -681,7 +739,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                             <div class="col-sm-7">
                                                 <label class="control-label" for="netgsm_neworder_to_admin_no"><i class="fa fa-certificate" style="color: #BB77AE;"></i>
                                                     <i class="fa fa-certificate" style="color: #34495E;"></i> Ürünün
-                                                    sipariş durumu değiştiğinde müşteriye sms gönderilsin:</label>
+                                                    sipariş durumu değiştiğinde müşteriye SMS gönderilsin:</label>
                                             </div>
                                             <div class="col-sm-5">
                                                 <label class="switch">
@@ -793,7 +851,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                         <div class="col-sm-3">
                                             <div class="col-sm-7">
                                                 <label class="control-label" for=""><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Siparişe yeni <span style="color: #2ECC71">Özel not</span> eklendiğinde müşteriye sms gönderilsin:</label>
+                                                    Siparişe yeni <span style="color: #2ECC71">özel not</span> eklendiğinde müşteriye SMS gönderilsin:</label>
                                             </div>
                                             <div class="col-sm-5">
                                                 <label class="switch">
@@ -834,7 +892,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                         <div class="col-sm-3">
                                             <div class="col-sm-7">
                                                 <label class="control-label" for=""><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Siparişe yeni <span style="color: #2ECC71">Müşteriye not</span> eklendiğinde müşteriye sms gönderilsin:</label>
+                                                    Siparişe yeni <span style="color: #2ECC71">müşteri notu</span> eklendiğinde müşteriye SMS gönderilsin:</label>
                                             </div>
                                             <div class="col-sm-5">
                                                 <label class="switch">
@@ -876,7 +934,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                         <div class="col-sm-3">
                                             <div class="col-sm-7">
                                                 <label class="control-label" for="netgsm_neworder_to_admin_no"><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Sipariş iptal edildiğinde belirlediğim numaralı sms ile
+                                                    Sipariş iptal edildiğinde belirlediğim numaralı SMS ile
                                                     bilgilendir:</label>
                                             </div>
                                             <div class="col-sm-5">
@@ -924,6 +982,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                     </div>
                                 </div>
 
+                                <!-- stoga urun girdiginde sms gonder -->
                                 <div class="form-group">
                                     <!--  ürün stoğa girdiğinde bekleme listesindekilere sms gönder-->
                                     <div class="row">
@@ -968,37 +1027,62 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                     </div>
                                 </div>
 
-                                <div class="form-group"> <!--  netgsm rehberine kayıt -->
+                                <!-- sepette urun unutuldugunda -->
+                                <div class="form-group">
                                     <div class="row">
                                         <div class="col-sm-3">
                                             <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_rehber_add"><i class="fa fa-certificate" style="color: #E74C3C;"></i>
-                                                    <i class="fa fa-certificate" style="color: #BB77AE;"></i> Yeni
-                                                    üye olunca, numarasını netgsm rehbere ekle:</label>
+                                                <label class="control-label" for="netgsm_abandoned_card_sms"><i class="fa fa-certificate" style="color: #BB77AE;"></i>
+                                                    Sepette urun unutuldugunda Müşteriye SMS gönder:</label>
                                             </div>
                                             <div class="col-sm-5">
                                                 <label class="switch">
-                                                    <input name="netgsm_rehber_control" id="netgsm_switch7" type="checkbox" onchange="netgsm_field_onoff(7)" value="1" <?php if ((get_option('netgsm_rehber_control')) == 1) { ?>checked <?php } ?>>
+                                                    <input name="netgsm_abandoned_card_sms_admin_control" id="netgsm_switch13" type="checkbox" onchange="netgsm_field_onoff(13)" value="1" <?php if ((get_option('netgsm_abandoned_card_sms_admin_control')) == 1) { ?>checked <?php } ?>>
                                                     <span class="slider round"></span>
                                                 </label>
                                             </div>
-                                            <p id="netgsm_tags_text7" style="display: none;">
                                         </div>
-                                        <div class="col-sm-9" id="netgsm_field7" style="<?php if ((get_option('netgsm_rehber_control')) != 1) { ?>display:none; <?php } ?>">
+                                        <div class="col-sm-9" id="netgsm_field13" style="<?php if ((get_option('netgsm_abandoned_card_sms_admin_control')) != 1) { ?>display:none; <?php } ?>">
                                             <div class="row">
                                                 <div class="col-sm-12">
                                                     <div class="input-group">
                                                         <div class="input-group-addon">
-                                                            <i class="fa fa-user-plus" style="color: #17A2B8;"></i>
+                                                            <i class="fa fa-hourglass" style="color: #17A2B8;"></i>
                                                         </div>
-                                                        <input name="netgsm_rehber_groupname" class="form-control" placeholder="Eklemek istediğiniz grup ismini giriniz." value="<?= esc_html(get_option("netgsm_rehber_groupname")) ?>">
+                                                        <input name="netgsm_abandoned_cart_periyod" id="netgsm_abandoned_cart_periyod" type="number" class="form-control" placeholder="Ürün sepette bekleme süresi (saat) Örn: 5 (default 24 saat)" value="<?= esc_html(get_option("netgsm_abandoned_cart_periyod")) ?>">
                                                     </div>
+                                                    <p id="netgsm_abandoned_cart_periyod"></p>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <div class="input-group">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-bell" style="color: #17A2B8;"></i>
+                                                        </div>
+                                                        <input name="netgsm_abandoned_cart_smslimit" id="netgsm_abandoned_cart_smslimit" type="number" class="form-control" placeholder="yukari belirtilen periyotda toplam kac sms gitsin" value="<?= esc_html(get_option("netgsm_abandoned_cart_smslimit")) ?>">
+                                                    </div>
+                                                    <p id="netgsm_abandoned_cart_smslimit"></p>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <div class="input-group">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
+                                                        </div>
+                                                        <textarea name="netgsm_abandoned_cart_to_admin_text" id="netgsm_textarea13" class="form-control" placeholder="Merhaba [uye_adi][uye_soyadi] Sepetinizde ürün kaldi! Fırsat bitmeden hemen satın alın. Stoklar hızla tükeniyor!"><?= esc_html(get_option("netgsm_abandoned_cart_to_admin_text")) ?></textarea>
+                                                        <input type="hidden" id="netgsm_abandoned_cart_to_admin_json" name="netgsm_abandoned_cart_to_admin_json" class="form-control" value="<?= esc_html(get_option("netgsm_abandoned_cart_to_admin_json")) ?>">
+                                                    </div>
+                                                    <p id="netgsm_tags_text13" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
+                                                        Kullanabileceğiniz Değişkenler : </i></p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="form-group">
                                     <div class="col-sm-2"></div>
                                     <div class="col-sm-10 text-right">
@@ -1007,49 +1091,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                         </button>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <p>
 
-                                        <i class="fa fa-bolt" style="color: #00B49C;"></i> Yeni Özellik : SMSlere otomatik geçmiş,güncel veya gelecek tarih ve saat ekleyebilirsiniz. :
-                                        Güncel tarih <b>[tarih]</b> formatındadır. <b>[tarih+5]</b> 5 gün sonranın tarihini verir .<b>[tarih-5]</b> 5 gün öncenin tarihini verir. Gün cinsinden ekleme/çıkarma yapılmalıdır. Format g.a.Y şeklindedir.<br>
-                                        Güncel saat <b>[saat]</b> formatındadır. <b>[saat+60]</b> 1 saat sonrasının saatini verir. <b>[saat-60]</b> 1 saat öncesinin saatini verir. Dakika cinsinden ekleme/çıkarma yapılmalıdır. Format : S:d:sn şeklindedir.
-
-                                        <br>
-                                        <i class="fa fa-bolt" style="color: #00B49C;"></i> Yeni Özellik : Sipariş
-                                        SMSlerinde, sipariş meta anahtarlarını kullanabilirsiniz. Kullanım şekli :
-                                        <b>[meta:metakeyiniz]</b> formatındadır. metakeyiniz yazan yere sipariş meta
-                                        anahtarını girebilirsiniz.
-                                        <br>
-                                        <i class="fa fa-bolt" style="color: #00B49C;"></i> Yeni Özellik : <i class="fa fa-cogs"></i> simgesi bulunan ayarlarda sunulan ek
-                                        konfigürasyonları yapabilirsiniz.<br>
-
-                                        <hr>
-
-                                        <i class="fa fa-certificate" style="color: #E74C3C;"></i> Aktif olduğunda, hesap
-                                        oluşturma sayfasına Ad,Soyad ve Telefon numarası kısmını ekler. Kayıt için
-                                        zorunlu olur.
-                                        <br>
-                                        <i class="fa fa-certificate" style="color: #BB77AE;"></i> Bu özellikler
-                                        woocommerce e-ticaret eklentisi yüklü ve etkin olduğunda çalışır.
-                                        <br>
-                                        <i class="fa fa-certificate" style="color: #34495E;"></i> Beklemede özelliğinde
-                                        yeni sipariş verildiğinde de sms gönderilir.
-                                        <br>
-                                        <i class="fa fa-certificate" style="color: #F79500;"></i> <a href="https://docs.woocommerce.com/document/woocommerce-waitlist/" target="_blank">WooCommerce Bekleme Listesi (WooCommerce Waitlist)</a> eklentisi yüklü olduğunda ve ürün düzenleme sayfasında <b>"send instock email"</b> özelliği çalıştırıldığında, bekleme listesindeki kullanıcıların numaralarına gönderilir.
-                                        <br>
-
-                                        <i class="fa fa-certificate" style="color: #681947;"></i> Kargo firması ve takip
-                                        kodu sadece Kargo Takip(<a href="https://wordpress.org/plugins/kargo-takip/" target="_blank">https://wordpress.org/plugins/kargo-takip/</a>)
-                                        eklentisinden aldığı değerler ile çalışır. NOT: eklentiyi kullanırken, kargo
-                                        bilgisini kaydettikten sonra sipariş durumunu değiştirin. (1.2 versiyonu ile
-                                        test edildi.)
-                                        <br>
-                                        <i class="fa fa-lightbulb-o" style="color: #D35400;"></i> Satır atlamak için
-                                        <strong>\n</strong> kullanabilirsiniz.<br>
-
-                                    </p>
-
-                                </div>
                             </div>
 
                             <div class="tab-pane container-fluid" id="tf2sms">
@@ -1081,8 +1123,8 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                                             <i class="fa fa-commenting" style="color: #17A2B8;"></i>
                                                         </div>
                                                         <textarea name="netgsm_tf2_auth_register_text" id="netgsm_textarea9" class="form-control" placeholder="Tek seferlik doğrulama kodunuz : [kod]
-*OTP SMS tek boy gönderilebilir.
-*Metin taslağı 140 karakter ile sınırlandırılmıştır." maxlength="140"><?= esc_html(get_option("netgsm_tf2_auth_register_text")) ?></textarea>
+                                            *OTP SMS tek boy gönderilebilir.
+                                            *Metin taslağı 140 karakter ile sınırlandırılmıştır." maxlength="140"><?= esc_html(get_option("netgsm_tf2_auth_register_text")) ?></textarea>
                                                     </div>
                                                     <p id="netgsm_tags_text9" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
                                                         Kullanabileceğiniz Değişkenler : </i></p>
@@ -1090,18 +1132,18 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                             </div>
                                             <div class="row">
                                                 <div class="col-sm-2">
-                                                    <p style="margin-top: 5px;">Kod geçerlilik süresi(dk):</p>
+                                                    <p style="margin-top: 5px;">Kod geçerlilik süresi(sn):</p>
                                                 </div>
                                                 <div class="col-sm-10">
                                                     <div class="input-group">
                                                         <div class="input-group-addon">
                                                             <i class="fa fa-clock-o" style="color: #17A2B8;"></i>
                                                         </div>
-                                                        <input name="netgsm_tf2_auth_register_diff" class="form-control" placeholder="Kod geçerlilik süresi (dk.) örn: 120" value="<?= esc_html(get_option("netgsm_tf2_auth_register_diff")) ?>">
+                                                        <input name="netgsm_tf2_auth_register_diff" class="form-control" placeholder="Kod geçerlilik süresi (sn.) örn: 120" value="<?= esc_html(get_option("netgsm_tf2_auth_register_diff")) ?>">
                                                     </div>
                                                     <p>Not : Bu süre boyunca aynı numaraya tekrar kod göndermek
-                                                        istense bile gönderilmeyecektir. Süreyi dakika olarak
-                                                        yazınız. (varsayılan olarak 180dk. )</p>
+                                                        istense bile gönderilmeyecektir. Süreyi saniye olarak
+                                                        yazınız. (varsayılan olarak 180sn. )</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -1159,7 +1201,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                     <br>
                                     <h4><i class="fa fa-certificate" style="color: #E74C3C;"></i> Bu özelliği
                                         kullanabilmeniz için OTP SMS paketinizin olması gereklidir.
-                                        https://www.netgsm.com.tr/webportal/ adresinden paket satın alabilirsiniz.
+                                        https://portal.netgsm.com.tr/ adresinden paket satın alabilirsiniz.
                                     </h4>
                                     <br>
                                     <h4><i class="fa fa-certificate" style="color: #BB77AE;"></i> Bu özellikler
@@ -1222,8 +1264,8 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                                 <select name="netgsm_content_type" id="netgsm_content_type" style="height: 35px; max-width: 100% ; width: 100% ;  font-size: 12px; border-color: #ccc">
                                                     <option value="0"> Mesaj içerik türü seçiniz</option>
                                                     <option value="1"> Kampanya, tanıtım, kutlama vb. (İYS'ye bireysel kayıtlı alıcılarınıza gönderilir.) </option>
-                                                    <option value="1"> Kampanya, tanıtım, kutlama vb. (İYS'ye tacir kayıtlı alıcılarınıza gönderilir.) </option>
-                                                    <option value="2"> Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.)</option>
+                                                    <option value="2"> Kampanya, tanıtım, kutlama vb. (İYS'ye tacir kayıtlı alıcılarınıza gönderilir.) </option>
+                                                    <option value="3"> Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.)</option>
                                                 </select>
                                             </div>
                                             <small>*<i> Hesabınıza tanımlı marka kodunuz bulunmuyorsa Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.) seçilmelidir.</i></small>
@@ -1292,17 +1334,6 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
 
 
                                 <div class="row">
-
-
-                                    <div class="col-md-12">
-                                        <div class="alert alert-info">
-                                            <span class="close" style="cursor: context-menu;" title="Bilgi"><i class="fa fa-info"></i></span>
-                                            Maksimum 1000 kullanıcı listelenir.
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="row">
                                     <div class="col-md-12 text-right">
 
                                     </div>
@@ -1329,9 +1360,7 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
                                                 foreach ($users as $key => $user) {
                                                     $billing_phone = get_user_meta($user->ID, $netgsm_contact_meta_key, true);
                                                     if (isset($billing_phone) && !empty($billing_phone)) {
-                                                        if ($key2 > 1000) {
-                                                            break;
-                                                        }
+
                                                         $key2++;
                                                 ?>
                                                         <tr id="user-<?= esc_attr($user->ID) ?>">
@@ -1571,12 +1600,12 @@ Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " cla
         var field5 = ['siparis_no', 'uye_adi', 'uye_soyadi', 'aciklama'];
         var field6 = ['siparis_no', 'uye_adi', 'uye_soyadi', 'uye_telefonu', 'uye_epostasi', 'kullanici_adi', 'tarih', 'saat'];
         var field7 = [''];
-        var field8 = ['uye_adi', 'uye_soyadi', 'uye_telefonu', 'uye_epostasi', 'kullanici_adi', 'urun_kodu', 'urun_adi', 'stok_miktari', 'tarih', 'saat'];
+        var field8 = ['uye_adi', 'uye_soyadi', 'uye_telefonu', 'uye_epostasi', 'kullanici_adi', 'urun_kodu', 'urun_adi', 'stok_miktari', 'tarih', 'saat', 'urun_bilgileri'];
         var field9 = ['kod', 'telefon_no', 'ad', 'soyad', 'mail', 'referans_no', 'tarih', 'saat'];
         var field10 = ['telefon_no', 'ad', 'soyad', 'mail', 'tarih', 'saat'];
         var field11 = ['siparis_no', 'not', 'uye_adi', 'uye_soyadi', 'uye_telefonu', 'uye_epostasi', 'kullanici_adi', 'siparis_toplamtutar', 'tarih', 'saat'];
         var field12 = ['siparis_no', 'not', 'uye_adi', 'uye_soyadi', 'uye_telefonu', 'uye_epostasi', 'kullanici_adi', 'siparis_toplamtutar', 'tarih', 'saat'];
-        var field13 = [''];
+        var field13 = ['uye_adi', 'uye_soyadi', 'uye_telefonu', 'uye_epostasi', 'kullanici_adi'];
         var field15 = [''];
         var field16 = [''];
         var field17 = [''];

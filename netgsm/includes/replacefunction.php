@@ -67,6 +67,14 @@ class ReplaceFunction
         return $result;
     }
 
+    public function netgsm_replace_stock_bulksms($data)
+    {
+        $istenmeyen = array('[uye_adi]', '[uye_soyadi]', '[uye_telefonu]', '[uye_epostasi]','[kullanici_adi]','[urun_kodu]','[urun_adi]','[stok_miktari]','[tarih]','[saat]','[urun_bilgileri]');
+        $degisen    = array($data['first_name'], $data['last_name'], $data['phone'], $data['user_email'], $data['user_login'], $data['urun_kodu'], $data['urun_adi'], $data['stok_miktari'], $data['tarih'], $data['saat'], $data['urun_bilgileri']);
+        $result      = str_replace($istenmeyen, $degisen, $data['message']);
+        return $result;
+    }
+
     public function netgsm_spaceTrim($data)
     {
         $istenmeyen = array(' ','(',')','-','*','_');

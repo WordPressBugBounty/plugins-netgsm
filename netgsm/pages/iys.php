@@ -1,7 +1,5 @@
 <?php
-if (!current_user_can('administrator')) {
-    return;  // Admin olmayan kullanıcılar erişemez
-}
+
 ?>
 <div class="tab-pane container-fluid" id="iys"> <!-- İYS ayarları-->
     <hr>
@@ -88,13 +86,13 @@ if (!current_user_can('administrator')) {
                 </div>
                 <div class="col-sm-5">
                     <label class="switch">
-                        <input name="netgsm_iys_check_control" id="netgsm_switch13" type="checkbox" onchange="netgsm_field_onoff(13)" value="1" <?php if (esc_attr(get_option('netgsm_iys_check_control')) == 1) { ?>checked <?php } ?>>
+                        <input name="netgsm_iys_check_control" id="netgsm_switch14" type="checkbox" onchange="netgsm_field_onoff(14)" value="1" <?php if (esc_attr(get_option('netgsm_iys_check_control')) == 1) { ?>checked <?php } ?>>
                         <span class="slider round"></span>
                     </label>
                 </div>
             </div>
 
-            <div class="col-sm-9" id="netgsm_field13" style="<?php if (esc_attr(get_option('netgsm_iys_check_control')) != 1) { ?>display:none; <?php } ?>">
+            <div class="col-sm-9" id="netgsm_field14" style="<?php if (esc_attr(get_option('netgsm_iys_check_control')) != 1) { ?>display:none; <?php } ?>">
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="input-group">
@@ -102,7 +100,7 @@ if (!current_user_can('administrator')) {
                                 <i class="fa fa-check-square" style="color: #17A2B8;"></i>
 
                             </div>
-                            <textarea name="netgsm_iys_check_text" id="netgsm_textarea13" class="form-control" placeholder="Kampanya, tanıtım, kutlama vb. içerik onay metni"><?= esc_textarea(get_option("netgsm_iys_check_text")) ?></textarea>
+                            <textarea name="netgsm_iys_check_text" id="netgsm_textarea14" class="form-control" placeholder="Kampanya, tanıtım, kutlama vb. içerik onay metni"><?= esc_textarea(get_option("netgsm_iys_check_text")) ?></textarea>
                         </div>
 
                     </div>
@@ -113,7 +111,7 @@ if (!current_user_can('administrator')) {
     <div class="form-group">
         <div class="col-sm-2"></div>
         <div class="col-sm-10 text-right">
-            <button class="btn btn-primary" id="login_save7" name="login_save7" onclick="login();"><i class="fa fa-folder"></i> Değişiklikleri Kaydet </button>
+            <button class="btn btn-primary" id="login_save7" name="login_save7" onclick="return saveIys();"><i class="fa fa-folder"></i> Değişiklikleri Kaydet </button>
         </div>
     </div>
     <div class="form-group">
@@ -130,4 +128,31 @@ if (!current_user_can('administrator')) {
             <i class="fa fa-exclamation-triangle" style="color: #D35400;"></i> Kampanya, tanıtım, kutlama vb. içerikli SMS'ler ticari içerik kapsamındadır
             bilgilendirme, kargo, şifre vb. içerikler ise ticari içerik kapsamında değildir.<br>
     </div>
+
+    <script>
+            function saveIys() {
+            var isBrandCodeControlChecked = document.getElementById('netgsm_switch15').checked;
+            var brandCode = document.getElementById('netgsm_textarea15').value.trim();
+            var recipientType = document.getElementById('netgsm_recipient_type').value;
+
+            var isMessageChecked = document.getElementById('netgsm_message').checked;
+            var isCallChecked = document.getElementById('netgsm_call').checked;
+            var isEmailChecked = document.getElementById('netgsm_email').checked;
+
+            if (isBrandCodeControlChecked) {
+                if (brandCode === '' || recipientType === '0') {
+                    alert("Lütfen Brandcode ve Adres türü alanlarını doldurunuz.");
+                    return false;
+                }
+
+                if (!isMessageChecked && !isCallChecked && !isEmailChecked) {
+                    alert("Lütfen en az bir İleti Kanalı seçiniz: Mesaj, Çağrı veya E-posta.");
+                    return false;
+                }
+            }
+           
+            jQuery('#sayfayi_yenile').val(1);
+            return true;
+        }
+    </script>
 </div>
