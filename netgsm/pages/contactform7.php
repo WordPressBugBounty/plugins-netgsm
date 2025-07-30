@@ -1,4 +1,3 @@
-
 <div class="tab-pane container-fluid" id="cf7sms"> <!-- CONTACT FORM7 SMS ayarları-->
     <hr>
     <div class="form-group">
@@ -39,7 +38,10 @@
                             foreach ($cf7_list as $item) {
                                 $cf7_list_text_success_customer = array($item->ID => 'netgsm_cf7_list_text_success_customer_' . $item->ID);
                         ?>
+
+                                <!-- Mesaj metni textarea -->
                                 <textarea style="display: none;" name="netgsm_cf7_list_text_success_customer_<?php echo esc_attr($item->ID); ?>" id="netgsm_cf7_list_text_success_customer_<?php echo esc_attr($item->ID); ?>" class="form-control cf7_list_text_success_customer" placeholder="Örnek : Mesajınız iletilmiştir."><?php echo esc_textarea(get_option($cf7_list_text_success_customer[$item->ID])); ?></textarea>
+
                                 <?php
                                 $form_tags = [];
                                 if (is_plugin_active('contact-form-7/wp-contact-form-7.php')) {
@@ -52,15 +54,26 @@
                                     if ($form_tag->name == '') {
                                         continue;
                                     }
-                                    array_push($tags,  '<mark onclick="varfill(\'netgsm_cf7_list_text_success_customer_\'+jQuery(\'#activeStatus_cf7_customer\').attr(\'data\'), \'' . esc_js($form_tag->name) . '\')">[' . esc_html($form_tag->name) . ']</mark>');
+                                    $onclick = "varfill('netgsm_cf7_list_text_success_customer_'+jQuery('#activeStatus_cf7_customer').attr('data'), '" . esc_js($form_tag->name) . "')";
+                                    $tags[] = '<mark onclick="' . esc_attr($onclick) . '">[' . esc_html($form_tag->name) . ']</mark>';
                                 }
                                 ?>
-                                <p style="display: none; padding-top: 5px" class="cf7_list_text_success_customer" id="netgsm_cf7_list_tags_success_customer_<?php echo esc_attr($item->ID); ?>">Kullanılabilir etiketler : <?php echo esc_html(implode(' ', $tags)); ?></p>
-                        <?php }
+
+                                <!-- Kullanılabilir etiketler (mark'lar tıklanabilir şekilde gösterilir) -->
+                                <p style="display: none; padding-top: 5px" class="cf7_list_text_success_customer" id="netgsm_cf7_list_tags_success_customer_<?php echo esc_attr($item->ID); ?>">
+                                    Kullanılabilir etiketler :
+                                    <?php echo implode(' ', $tags); ?>
+                                    <!-- Alternatif olarak güvenlik istiyorsan şunu da kullanabilirsin: -->
+                                    <!-- <?php echo wp_kses_post(implode(' ', $tags)); ?> -->
+                                </p>
+
+                        <?php
+                            }
                         } ?>
+
                         <p id="netgsm_tags_text5" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i> <i> Kullanabileceğiniz Değişkenler : </i>
                             Hangi form için sms oluşturuyorsanız o formda oluşturduğunuz etiketleri kullanın.
-                            
+
 
                         </p>
                         <p>
@@ -116,31 +129,45 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <?php if (isset($cf7_list)) {
-                            foreach ($cf7_list as $item) {
-                                $cf7_list_text_success_admin = array($item->ID => 'netgsm_cf7_list_text_success_admin_' . $item->ID);
-                        ?>
-                                <textarea style="display: none;" name="netgsm_cf7_list_text_success_admin_<?php echo esc_attr($item->ID); ?>" id="netgsm_cf7_list_text_success_admin_<?php echo esc_attr($item->ID); ?>" class="form-control cf7_list_text_success_admin" placeholder="Örnek : Mesajınız iletilmiştir."><?php echo esc_textarea(get_option($cf7_list_text_success_admin[$item->ID])); ?></textarea>
-                                <?php
-                                $form_tags = [];
-                                if (is_plugin_active('contact-form-7/wp-contact-form-7.php')) {
-                                    $ContactForm = WPCF7_ContactForm::get_instance($item->ID);
-                                    $form_tags = $ContactForm->scan_form_tags();
-                                }
+    foreach ($cf7_list as $item) {
+        $cf7_list_text_success_admin = array($item->ID => 'netgsm_cf7_list_text_success_admin_' . $item->ID);
+        ?>
+        
+        <!-- Mesaj metni textarea -->
+        <textarea style="display: none;" name="netgsm_cf7_list_text_success_admin_<?php echo esc_attr($item->ID); ?>" id="netgsm_cf7_list_text_success_admin_<?php echo esc_attr($item->ID); ?>" class="form-control cf7_list_text_success_admin" placeholder="Örnek : Mesajınız iletilmiştir."><?php echo esc_textarea(get_option($cf7_list_text_success_admin[$item->ID])); ?></textarea>
+        
+        <?php
+        $form_tags = [];
+        if (is_plugin_active('contact-form-7/wp-contact-form-7.php')) {
+            $ContactForm = WPCF7_ContactForm::get_instance($item->ID);
+            $form_tags = $ContactForm->scan_form_tags();
+        }
 
-                                $tags = [];
-                                foreach ($form_tags as $form_tag) {
-                                    if ($form_tag->name == '') {
-                                        continue;
-                                    }
-                                    array_push($tags,  '<mark onclick="varfill(\'netgsm_cf7_list_text_success_admin_\'+jQuery(\'#activeStatus_cf7_admin\').attr(\'data\'), \'' . $form_tag->name . '\')">[' . $form_tag->name . ']</mark>');
-                                }
-                                ?>
-                                <p style="display: none; padding-top: 5px" class="cf7_list_text_success_admin" id="netgsm_cf7_list_tags_success_admin_<?php echo esc_attr($item->ID); ?>">Kullanılabilir etiketler : <?php echo esc_html(implode(' ', $tags)); ?></p>
-                        <?php }
-                        } ?>
+        $tags = [];
+        foreach ($form_tags as $form_tag) {
+            if ($form_tag->name == '') {
+                continue;
+            }
+            $onclick = "varfill('netgsm_cf7_list_text_success_admin_'+jQuery('#activeStatus_cf7_admin').attr('data'), '" . esc_js($form_tag->name) . "')";
+            $tags[] = '<mark onclick="' . esc_attr($onclick) . '">[' . esc_html($form_tag->name) . ']</mark>';
+        }
+        ?>
+
+        <!-- Kullanılabilir etiketler -->
+        <p style="display: none; padding-top: 5px" class="cf7_list_text_success_admin" id="netgsm_cf7_list_tags_success_admin_<?php echo esc_attr($item->ID); ?>">
+            Kullanılabilir etiketler :
+            <?php echo implode(' ', $tags); ?>
+            <!-- veya güvenlik açısından şunu kullanabilirsin: -->
+            <!-- <?php echo wp_kses_post(implode(' ', $tags)); ?> -->
+        </p>
+
+        <?php
+    }
+} ?>
+
                         <p id="netgsm_tags_text5" style="margin-top: 10px;"><i class="fa fa-angle-double-right"></i> <i> Kullanabileceğiniz Değişkenler : </i>
                             Hangi form için sms oluşturuyorsanız o formda oluşturduğunuz etiketleri kullanın.
-                           
+
 
                         </p>
                     </div>
@@ -148,7 +175,7 @@
             </div>
         </div>
         <div class="row">
-            
+
 
             <div class="col-sm-9" id="field_netgsm_cf7_3" style="<?php if (esc_attr(get_option('netgsm_cf7_contact_control')) != 1) { ?>display:none; <?php } ?>">
                 <div class="row" style="
@@ -228,7 +255,6 @@
                                                     continue;
                                                 }
                                                 array_push($tags,  '<mark onclick="varfill(\'netgsm_cf7_list_contact_other_\'+jQuery(\'#activeStatus_cf7_other_contact\').attr(\'data\'), \'' . esc_js($form_tag->name) . '\')">[' . esc_html($form_tag->name) . ']</mark>');
-
                                             }
                                             ?>
 
@@ -275,7 +301,7 @@
                 </div>
             </div>
         </div>
-        </div>
+    </div>
     <div class="form-group">
         <div class="col-sm-2"></div>
         <div class="col-sm-10 text-right">
@@ -292,4 +318,3 @@
             <i class="fa fa-exclamation-triangle" style="color: #D35400;"></i> Bu sayfa yüklendiğinde daha önce girdiğiniz metinler görünmez. Formu seçtiğiniz taktirde görünür.
     </div>
 </div>
-        
