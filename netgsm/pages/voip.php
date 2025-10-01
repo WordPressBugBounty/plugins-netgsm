@@ -1,3 +1,9 @@
+<?php
+
+if (!current_user_can('administrator')) {
+    return;  // Admin olmayan kullanıcılar erişemez
+}
+?>
 <div class="tab-pane" id="voip">
     <div class="row" >
         <div class="col-md-12">

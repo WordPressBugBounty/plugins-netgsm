@@ -4,7 +4,7 @@ Donate link: https://www.netgsm.com.tr/
 Tags: sms türkiye, toplu sms, woocommerce sms, netgsm wordpress, sms eklentisi
 Requires at least: 3.0
 Tested up to: 6.8
-Stable tag: 2.9.58
+Stable tag: 2.9.59
 Requires PHP: 7.4.33
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -88,6 +88,8 @@ Eklentiler > Yeni Ekle > Eklenti Yükle > Dosya Seç butonundan indirmiş olduğ
 3. Eklenti yüklendikten sonra eklentiyi hemen etkinleştirebilir veya yüklü eklentiler kısmından daha sonra eklentiyi etkinleştirebilirsiniz.
 
 == Changelog ==
+= 2.9.59 =
+* Missing Authorization
 = 2.9.58 =
 * Sürüm revizasyonu
 = 2.9.57 =
@@ -127,6 +129,8 @@ Eklentiler > Yeni Ekle > Eklenti Yükle > Dosya Seç butonundan indirmiş olduğ
 * Hata düzeltmeleri
 =======
 == Changelog ==
+= 2.9.59 =
+* Missing Authorization
 = 2.9.58 =
 * Sürüm revizasyonu
 = 2.9.57 =
@@ -167,6 +171,8 @@ Eklentiler > Yeni Ekle > Eklenti Yükle > Dosya Seç butonundan indirmiş olduğ
 = 2.9.32 =
 * Hata düzeltmesi yapıldı.
 == Changelog ==
+= 2.9.59 =
+* Missing Authorization
 = 2.9.58 =
 * Sürüm revizasyonu
 = 2.9.57 =

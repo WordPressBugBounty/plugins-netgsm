@@ -1,3 +1,9 @@
+<?php
+
+if (!current_user_can('administrator')) {
+    return;  // Admin olmayan kullanıcılar erişemez
+}
+?>
 <div class="tab-pane container-fluid" id="cf7sms"> <!-- CONTACT FORM7 SMS ayarları-->
     <hr>
     <div class="form-group">
