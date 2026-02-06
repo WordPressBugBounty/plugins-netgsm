@@ -4,7 +4,7 @@ Donate link: https://www.netgsm.com.tr/
 Tags: sms türkiye, toplu sms, woocommerce sms, netgsm wordpress, sms eklentisi
 Requires at least: 3.0
 Tested up to: 6.8
-Stable tag: 2.9.59
+Stable tag: 2.9.69
 Requires PHP: 7.4.33
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -14,80 +14,107 @@ Netgsm wordpress eklentisi ile kullanıcılarınıza sms uzaklığında kalın.
 
 == Description ==
 
-<h3>Netgsm eklentisi ile, <a href="https://www.netgsm.com.tr/" style="text-decoration: none">Netgsm</a> hesabınızla; </h3>
+<h3>Netgsm Hakkında</h3>
+<p>25 yılı aşkın deneyimiyle 198.000'den fazla aboneye hizmet veren Netgsm, BTK lisanslı ve mevzuata uyumlu iletişim hizmetleri sunmaktadır. Her gün binlerce işletmenin iletişimini güçlendiren Netgsm güvenilir, hızlı ve kolay iletişim altyapısı sağlar.</p>
+<h3>SMS Hizmetiyle İletişiminizi Güçlendirin</h3>
+<p>Netgsm'in SMS hizmetiyle müşterilerinize anında ulaşabilirsiniz. Kampanya duyuruları, sipariş bildirimleri ve müşteri iletişiminiz için Toplu SMS; güvenlik ve kimlik doğrulama için ise OTP SMS hizmetini kullanabilirsiniz. İYS sayesinde mevzuata uygun gönderimler yapabilirsiniz.</p>
+<h3>Netgsm Eklentisi ile Neler Yapılabilir?</h3>
 <ul>
-<li><strong>YENİ</strong> | <a href="https://www.netgsm.com.tr/musteri-destek-yazilimi/netasistan" style="text-decoration: none">Netasistan</a> iletişim butonu oluşturma(Arama, Mesaj, E-mail, Whatsapp, Netasistan iletişim kanalları)</li>
-<li><strong>YENİ</strong> | Yeni üyeliklerde kampanya, tanıtım, kutlama vb. içerikli ileti onayı alabilirsiniz.</li>
-<li><strong>YENİ</strong> | Yeni üyeliklerde kampanya, tanıtım, kutlama vb. içerikli ileti onayı alınması halinde telefon numaraları ve e-mail adreslerini İYS'ye ekleyebilirsiniz.</li>
-<li><strong>YENİ</strong> | Sipariş SMSlerinde siparişe ait meta anahtarlarını kullanabilirsiniz.</li>
-<li><strong>YENİ</strong> | SMS metinlerinde güncel, geçmiş veya gelecek tarih ve saat kullanabilirsiniz.</li>
-<li><strong>YENİ</strong> | Netsantral(<a href="https://www.netgsm.com.tr/sanal-santral/netsantral" style="text-decoration: none">Bulut Santral</a>) woocommerce entegrasyonunu kullanarak, müşterilerinize isimleriyle hitap edebilir son siparişlerini otomatik okutabilirsiniz.</li>
-<li>Sepette ürün unutan müşterilere belli araliklar ile sms gönderilebilirsiniz NOT: durma şartı olarak toplam kaç sms göderilsin eklenebilir</li>
-<li>Gelen cağrılar ve Gelen sms bölümünde müsteriniz olmayan kullanıcılarada cevapla butonu ile sms gönderebilsiniz</li>
-<li>Waitlist eklentisi ile stoğa girince haber ver listesine SMS gönderebilirsiniz.</li>
-<li>Kayıtlı telefon numarası ile yeni üyeliği engelleyebilirsiniz.</li>
-<li>Yönetici panelinden siparişe not girildiğinde müşteriye SMS gönderebilirsiniz..</li>
-<li>Kullanıcı yetkilendirmesi yapabilirsiniz.</li>
-<li>Rol yetkilendirmesi yapabilirsiniz.</li>
-<li>Woocommerce yeni üye olurken 2 faktörlü kimlik doğrulama kullanabilirsiniz. (<a href"https://www.netgsm.com.tr/sms/otp-sms">OTP SMS)</a></li>
-<li>Gelen çağrılarınızı görebilir, sizi arayanlara sms gönderebilirsiniz.</li>
-<li>Contact 7 Form eklentisi ile oluşturulan formlar gönderildiğinde sms gönderebilirsiniz!</li>
-<li>Gelen sms kutusu sayesinde müşterilerinizle daha hızlı ve kaliteli bir şekilde iletişimde kalabilirsiniz.</li>
-<li>Woocommerce Muşterilerinize toplu olarak sms gönderebilirsiniz.</li>
-<li>Yeni kayıt olan müşteriyi ve yetkilileri sms ile bilgilendirebilirsiniz.</li>
-<li>Yeni siparişlerde muşteriyi ve yetkilileri sms ile bilgilendirebilirsiniz.</li>
-<li>Siparişin durumu değiştiğinde müşteriye, her duruma özel otomatik sms gönderebilirsiniz.</li>
-<li>Sipariş iptal edildiğinde belirlenen numaralara otomatik sms gönderebilirsiniz.</li>
-<li>Tüm bu özelliklerde durumlara ve kişilere özel değişkenler kullanarak kişiye özel sms göndermiş olursunuz.</li>
-<li>İstenilen numaraya özel sms gönderebilirsiniz.</li>
-<li>Yeni müşteri özelliklerinde müşterilerinizden, kayıt olma sayfasında Ad-Soyad ve Telefon bilgisi istenilecektir.</li>
-<li>Numaranıza gelen sms'leri eklenti üzerinden görüntüleyebilir ve anında cevap yazabilirsiniz.</li>
-<li>Contact Form 7 eklentisinden oluşturulan formlar gönderildiğinde istenen numaralara ve gönderene sms gönderebilirsiniz.</li>
+<li>Durumlara ve kişilere özel değişkenler kullanarak kişiselleştirilmiş SMS gönderebilirsiniz.</li>
+<li>SMS metinlerinde güncel, geçmiş veya gelecek tarih ve saat bilgilerini kullanabilirsiniz.</li>
+<li>İstenilen numaraya özel SMS gönderebilirsiniz.</li>
+<li>Yeni üyeliklerde kampanya, tanıtım, kutlama vb. SMS’ler için ileti onayı alabilirsiniz.</li>
+<li>İleti onayı alınan telefon numaralarını ve e-mail adreslerini otomatik olarak İYS'ye ekleyebilirsiniz.</li>
+<li>Sipariş SMS'lerinde siparişe ait meta anahtarlarını kullanabilirsiniz.</li>
+<li>Sepette ürün unutan müşterilere belirli aralıklarla SMS gönderebilirsiniz. (Durma şartı olarak toplam kaç SMS gönderileceğini belirleyebilirsiniz.)</li>
+<li>Müşteriniz olmayan kullanıcılara da gelen çağrılar ve gelen SMS bölümünden cevapla butonu ile SMS gönderebilirsiniz.</li>
+<li>Waitlist eklentisi ile stoğa giren ürünler için listedeki kişilere SMS gönderebilirsiniz.</li>
+<li>Kayıtlı telefon numarası ile yeni üyelik oluşturulmasını engelleyebilirsiniz.</li>
+<li>Yönetici panelinden siparişe not girildiğinde müşteriye SMS gönderebilirsiniz.</li>
+<li>Kullanıcı bazlı yetkilendirme yapabilirsiniz.</li>
+<li>Rol bazlı yetkilendirme yapabilirsiniz.</li>
+<li>WooCommerce yeni üye girişlerinde iki faktörlü kimlik doğrulama (<a href="https://www.netgsm.com.tr/sms/otp-sms" style="text-decoration: none">OTP SMS</a>) kullanabilirsiniz.</li>
+<li>Gelen çağrıları görüntüleyebilir, sizi arayanlara SMS gönderebilirsiniz.</li>
+<li>Gelen SMS kutusu sayesinde müşterilerinizle daha hızlı ve kaliteli iletişim kurabilirsiniz.</li>
+<li>Contact Form 7 eklentisi ile oluşturulan formlar gönderildiğinde belirlenen numaralara ve form gönderene SMS gönderebilirsiniz</li>
+<li>WooCommerce müşterilerinize toplu SMS gönderebilirsiniz.</li>
+<li>Yeni siparişlerde müşteriyi ve yetkilileri SMS ile bilgilendirebilirsiniz.</li>
+<li>Sipariş durumu değiştiğinde müşteriye her duruma özel otomatik SMS gönderebilirsiniz.</li>
+<li>Sipariş iptal edildiğinde belirlenen numaralara otomatik SMS gönderebilirsiniz.</li>
+<li>Netasistan iletişim butonu oluşturabilirsiniz. (Arama, Mesaj, E-mail, WhatsApp ve Netasistan iletişim kanalları)</li>
+<li>Netsantral (Bulut Santral) WooCommerce entegrasyonunu kullanarak müşterilerinize isimleriyle hitap edebilir, son siparişlerini otomatik okutabilirsiniz.</li>
 </ul>
 
-<strong>NOT: </strong>Netgsm eklentisini kullanabilmek içim netgsm hesabınızın olması gerekmektedir.
-<a href="https://www.netgsm.com.tr/abonelik/bilgilendirme"><strong>https://www.netgsm.com.tr/abonelik/bilgilendirme</strong></a> adresinden netgsm aboneliği oluşturabilirsiniz.
-<strong>NOT: </strong>Netgsm eklentisi woocommerce eklentisi ile beraber çalisir.
+<strong>NOT: </strong>Netgsm eklentisini kullanabilmek için Netgsm hesabınızın olması gerekmektedir.  <a href="https://www.netgsm.com.tr/uyelik" style="text-decoration: none">Üyelik</a> sayfasından abonelik oluşturabilirsiniz.
+
+<strong>NOT: </strong>Eklenti güncellemelerini önce test ortamında yapıp test ettikten sonra canlı ortamda güncellemeniz, olası hataları önleyecektir.
 
 <strong>Tags: </strong>sms türkiye, toplu sms, woocommerce sms, netgsm wordpress, sms eklentisi, türkiye, sms türkiye, bulk sms, bulk sms turkiye, turkey sms , turkey bulk sms, toplu sms hizmeti, toplu sms netgsm, sms eklentisi türkiye, woocommerce sms eklentisi, woocommerce turkiye, woocommerce bulk sms, order sms, sipariş sms, sms aboneliği
 
-<strong>NOT: Eklenti güncellemelerini test ortamında yapıp test ettikten sonra canlı ortamda güncellemeniz, olası hataları engelleyecektir..</strong>
 == Frequently Asked Questions ==
 
-= Eklentiyi kullanmak icin netgsm aboneliğine ihtiyaç var mi? =
+= Eklentiyi kullanmak için Netgsm aboneliğine ihtiyaç var mı? =
 
-Evet, eklentiyi kullanabilmek icin netgsm abonesi olmalısınız.
+Evet, eklentiyi kullanabilmek icin Netgsm abonesi olmalısınız.
 
-= Nasıl Netgsm abonesi olabilirim? =
+= Nasıl Netgsm abonesi olabilirim?  =
 
-https://www.netgsm.com.tr/abone/bilgilendirme.php adresinden netgsm aboneliği oluşturabilirsiniz.
+https://www.netgsm.com.tr/uyelik adresinden abonelik oluşturabilirsiniz.
 
-= Netgsm eklentisi woocommerce ile uyumlu calışıyor mu =
+= Netgsm eklentisi woocommerce ile uyumlu çalışıyor mu? =
 
-Evet. Netgsm eklentisi, woocommerce ile verilen siparişlerde, sipariş durum değisikliklerinde ve müşterilerinize toplu sms atmak gibi özelliklerde woocommerce ile uyumlu calışıyor.
+Evet. Netgsm eklentisi verilen siparişlerde, sipariş durumu değişikliklerinde ve müşterilere toplu SMS gönderimi gibi işlemlerde WooCommerce ile uyumlu çalışır.
 
-= Kullanıcılara özel sms gönderebilirmiyim? =
+= Kullanıcılara özel sms gönderebilir miyim? =
 
-Evet. Netgsm eklentisi ile kullanıcılara ve müşterilere sms gönderirken kullanılabilir degişkenleri kullanarak, kullanıcı adı, üyenin, adı-soyadı-telefonu-e maili vs. gibi bilgileri kullanarak onlara özel sms gönderebilirsiniz.
+Evet. Netgsm eklentisi sayesinde kullanıcılara ve müşterilere SMS gönderirken değişken alanlar kullanabilirsiniz. Bu sayede kullanıcı adı, ad, soyad, telefon numarası, e-posta gibi bilgilere özel, kişiselleştirilmiş SMS’ler gönderebilirsiniz.
+
+= Where do I report security bugs found in this plugin? =
+Please report security bugs found in the source code of the Netgsm plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/9e5fbe3b-a356-4440-8d66-5de1e72e457d). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Installation ==
 
->> Wordpress yönetim panelinden
-1. Wordpress yönetim panelinize giriş yapin.
-2. Eklentiler bölümünü acin.
-3. Sol üstteki 'Yeni Ekle' butonuna tıklayin.
-4. Arama kutusuna 'netgsm' yazın.
-5. Arama sonuçlarında gösterilen netgsm eklentisin de bulunan 'Hemen yükle' butonuna tıklayın.
-6. Eklenti yüklendikten sonra 'Etkinleştir' butonuna tıklayın.
-7. Eklentiyi kullanmaya başlayabilirsiniz.
+WordPress yönetim paneli üzerinden;
 
->> İndirilen zip dosyasi ile
-1. Eklentiyi yüklemek için, eklentiyi indirdikten sonra wordpress yönetim panelinizden
-Eklentiler > Yeni Ekle > Eklenti Yükle > Dosya Seç butonundan indirmiş olduğunuz eklenti zip dosyasını seçin
-2. Hemen Yükle butonuna basın.
-3. Eklenti yüklendikten sonra eklentiyi hemen etkinleştirebilir veya yüklü eklentiler kısmından daha sonra eklentiyi etkinleştirebilirsiniz.
+<ol>
+<li>WordPress yönetim panelinize giriş yapın.</li>
+<li>Eklentiler bölümünü açın.</li>
+<li>Sol üst köşede yer alan Yeni Ekle butonuna tıklayın.</li>
+<li>Arama alanına “netgsm” yazın.</li>
+<li>Arama sonuçlarında listelenen Netgsm eklentisi üzerindeki Hemen Yükle butonuna tıklayın.</li>
+<li>Yükleme tamamlandıktan sonra Etkinleştir butonuna tıklayın.</li>
+<li>Eklenti kullanıma hazırdır.</li>
+</ol>
+
+İndirilen zip dosyası ile;
+
+<ol>
+<li>Eklenti ZIP dosyasını indirdikten sonra WordPress yönetim panelinizden; Eklentiler > Yeni Ekle > Eklenti Yükle > Dosya Seç butonuna tıklayarak indirmiş olduğunuz zip dosyasını seçin.</li>
+<li>Hemen Yükle butonuna tıklayın.</li>
+<li>Yükleme tamamlandıktan sonra eklentiyi hemen etkinleştirebilir veya Yüklü Eklentiler bölümünden daha sonra etkinleştirebilirsiniz.</li>
+</ol>
 
 == Changelog ==
+= 2.9.69 =
+* Sürüm revizasyonu
+= 2.9.68 =
+* Sürüm revizasyonu
+= 2.9.67 =
+* Sürüm revizasyonu
+= 2.9.66 =
+* Sürüm revizasyonu
+= 2.9.65 =
+* Sürüm revizasyonu
+= 2.9.64 =
+* Sürüm revizasyonu
+= 2.9.63 =
+* Sürüm revizasyonu
+= 2.9.62 =
+* Sürüm revizasyonu
+= 2.9.61 =
+* Sürüm revizasyonu
+= 2.9.60 =
+* Sürüm revizasyonu
 = 2.9.59 =
 * Missing Authorization
 = 2.9.58 =
@@ -129,6 +156,26 @@ Eklentiler > Yeni Ekle > Eklenti Yükle > Dosya Seç butonundan indirmiş olduğ
 * Hata düzeltmeleri
 =======
 == Changelog ==
+= 2.9.69 =
+* Sürüm revizasyonu
+= 2.9.68 =
+* Sürüm revizasyonu
+= 2.9.67 =
+* Sürüm revizasyonu
+= 2.9.66 =
+* Sürüm revizasyonu
+= 2.9.65 =
+* Sürüm revizasyonu
+= 2.9.64 =
+* Sürüm revizasyonu
+= 2.9.63 =
+* Sürüm revizasyonu
+= 2.9.62 =
+* Sürüm revizasyonu
+= 2.9.61 =
+* Sürüm revizasyonu
+= 2.9.60 =
+* Sürüm revizasyonu
 = 2.9.59 =
 * Missing Authorization
 = 2.9.58 =
@@ -171,6 +218,26 @@ Eklentiler > Yeni Ekle > Eklenti Yükle > Dosya Seç butonundan indirmiş olduğ
 = 2.9.32 =
 * Hata düzeltmesi yapıldı.
 == Changelog ==
+= 2.9.69 =
+* Sürüm revizasyonu
+= 2.9.68 =
+* Sürüm revizasyonu
+= 2.9.67 =
+* Sürüm revizasyonu
+= 2.9.66 =
+* Sürüm revizasyonu
+= 2.9.65 =
+* Sürüm revizasyonu
+= 2.9.64 =
+* Sürüm revizasyonu
+= 2.9.63 =
+* Sürüm revizasyonu
+= 2.9.62 =
+* Sürüm revizasyonu
+= 2.9.61 =
+* Sürüm revizasyonu
+= 2.9.60 =
+* Sürüm revizasyonu
 = 2.9.59 =
 * Missing Authorization
 = 2.9.58 =

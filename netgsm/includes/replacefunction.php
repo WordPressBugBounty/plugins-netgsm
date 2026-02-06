@@ -36,9 +36,9 @@ class ReplaceFunction
     }
 
     public function netgsm_replace_order_status_changes($data)
-    {
-        $istenmeyen = array('[siparis_no]', '[uye_adi]', '[uye_soyadi]', '[uye_telefonu]', '[uye_epostasi]','[kullanici_adi]', '[kargo_firmasi]', '[takip_kodu]');
-        $degisen    = array($data['order_id'], $data['first_name'], $data['last_name'], $data['phone'], $data['user_email'], $data['user_login'], $data['trackingCompany'], $data['trackingCode']);
+    {    
+        $istenmeyen = array('[siparis_no]', '[uye_adi]', '[uye_soyadi]', '[uye_telefonu]', '[uye_epostasi]','[kullanici_adi]', '[kargo_firmasi]', '[takip_kodu]','[siparis_tutar]');
+        $degisen    = array($data['order_id'], $data['first_name'], $data['last_name'], $data['phone'], $data['user_email'], $data['user_login'], $data['trackingCompany'], $data['trackingCode'], $data['siparis_tutar']);
         $result      = str_replace($istenmeyen, $degisen, $data['message']);
         return $result;
     }

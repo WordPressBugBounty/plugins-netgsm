@@ -5,7 +5,7 @@ Plugin URI: https://wordpress.org/plugins/netgsm/
 Description: Netgsm hesabınız ile Woocommerce müşterileriniz yeni sipariş verdiğinde, yeni kayıt olan müşterileriniz olduğunda ve toplu smslerde kişiye özel ve yöneticilere sms gönderebileceğiniz bir eklentidir. Bunun yanısıra kişiye özel toplu ve özel sms gönderebilir, Gelen kutunuzdaki smsleri anında cevaplaya bilirsiniz. Yeni kayıt olan müşterileriniz netgsm rehberine ekleyebilir, siparişlerin durumları değiştiğinde kargo takip kodu gibi bilgileri müşterilerinize otomatik olarak gönderebilirsiniz. Ayrıca Contact Form 7 formlarınızda sms gönderimi sağlayabilirsiniz.
 Author: Netgsm
 Author URI: www.netgsm.com.tr
-Version: 2.9.59
+Version: 2.9.69
 
 
 */
@@ -164,6 +164,10 @@ function netgsm_options()
     register_setting('netgsmoptions', 'netgsm_tf2_auth_register_text');
     register_setting('netgsmoptions', 'netgsm_tf2_auth_register_diff');
 
+    register_setting('netgsmoptions', 'netgsm_tf2_cash_on_delivery_control');
+    register_setting('netgsmoptions', 'netgsm_tf2_cash_on_delivery_text');
+    register_setting('netgsmoptions', 'netgsm_tf2_cash_on_delivery_diff');
+
     //otp duplicate control
     register_setting('netgsmoptions', 'netgsm_tf2_auth_register_phone_control');
     register_setting('netgsmoptions', 'netgsm_tf2_auth_register_phone_warning_text');
@@ -289,6 +293,7 @@ function netgsm_ajaxRequest()
                 'phone': phone,
                 'message': message,
                 'filter': filter,
+                '_wpnonce': "<?php echo esc_attr( wp_create_nonce( 'netgsm_sendsms' ) ); ?>"
             };
 
             jQuery.post(ajaxurl, data, function(response) {
@@ -300,7 +305,7 @@ function netgsm_ajaxRequest()
                     document.getElementById('private_text').value = "";
                     swal({
                         title: "BAŞARILI!",
-                        html: obje.mesaj + '<br><br><b>' + phone + '</b> numarasına ' + '"<b>' + message + '</b>" gönderildi.',
+                        html: obje.mesaj + '<br><br><b>' + phone + '</b> numarasına ' + '"<b>' + sanitizeTextField(message) + '</b>" gönderildi.',
                         type: 'success'
                     });
                 } else {
@@ -313,7 +318,16 @@ function netgsm_ajaxRequest()
                 document.getElementById('sendSMS').disabled = false;
             });
         }
-
+        
+        function sanitizeTextField(str) {
+            // 1. Backslash temizle
+            str = str.replace(/\\/g, '');
+            // 2. HTML tag'lerini sil
+            str = str.replace(/<[^>]*>?/gm, '');
+            // 3. Trim (baş ve sondaki boşluklar)
+            str = str.trim();
+            return str;
+        }
         function netgsm_sendSMS_bulkTab(id = "",$phone=0) {
             document.getElementById('bulkSMSbtn').disabled = true;
             var users = [];
@@ -374,6 +388,7 @@ function netgsm_ajaxRequest()
                                         'message': message,
                                         'sendPhone' : numberstext,
                                         'filter': filter,
+                                        '_wpnonce': "<?php echo esc_attr( wp_create_nonce( 'netgsm_sendSMS_bulkTab' ) ); ?>"
                                     };
                                     jQuery.post(ajaxurl, data, function(response) {
                                         var obje = JSON.parse(response);
@@ -381,7 +396,7 @@ function netgsm_ajaxRequest()
                                         if (obje.durum == 1) {
                                             swal({
                                                 title: "BAŞARILI!",
-                                                html: obje.mesaj + '<br><br><b>' + obje.phones + '</b> ' + numberstext + ' "<b>' + message + '</b>" gönderildi.',
+                                                html: obje.mesaj + '<br><br><b>' + obje.phones + '</b> ' + numberstext + ' "<b>' + sanitizeTextField(message) + '</b>" gönderildi.',
                                                 type: 'success'
                                             });
                                         } else {
@@ -440,7 +455,8 @@ function netgsm_ajaxRequest()
                                 var data = {
                                     'action': 'netgsm_sendsms',
                                     'phone': phone,
-                                    'message': message
+                                    'message': message,
+                                    '_wpnonce': "<?php echo esc_attr( wp_create_nonce( 'netgsm_sendsms' ) ); ?>"
                                 };
                                 jQuery.post(ajaxurl, data, function(response) {
                                     var obje = JSON.parse(response);
@@ -448,7 +464,7 @@ function netgsm_ajaxRequest()
                                     if (obje.durum == 1) {
                                         swal({
                                             title: "BAŞARILI!",
-                                            html: obje.mesaj + '<br><br><b>' + phone + '</b> numarasına ' + '"<b>' + message + '</b>" gönderildi.',
+                                            html: obje.mesaj + '<br><br><b>' + phone + '</b> numarasına ' + '"<b>' + sanitizeTextField(message) + '</b>" gönderildi.',
                                             type: 'success'
                                         });
                                     } else {
@@ -500,7 +516,8 @@ function netgsm_ajaxRequest()
                     showLoadingMessage('Görüşme kayıtları getiriliyor...');
                     var data = {
                         'action': 'netgsm_getNetsantral_Report',
-                        'type': type
+                        'type': type,
+                        '_wpnonce': "<?php echo esc_attr( wp_create_nonce( 'netgsm_getNetsantral_Report' ) ); ?>"
                     };
                     xhr = jQuery.post(ajaxurl, data, function(response) {
                         var response = JSON.parse(response);
@@ -671,6 +688,8 @@ function netgsm_ajaxRequest()
                        $saat = date('H:i:s');  
                        $bulkBody   = "";
                        $product_link = get_permalink($product_id);
+                       $message         = sanitize_textarea_field(wp_unslash($message));
+                       $message         = strip_tags($message);
                        foreach ($customerNotifications as $customerNotification) {
                           
                             if($customerNotification->customer_id){
@@ -724,6 +743,9 @@ function netgsm_ajaxRequest()
             add_action('wp_ajax_netgsm_getNetsantral_Report', 'netgsm_getNetsantral_Report');
             function netgsm_getNetsantral_Report()
             {
+                if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'netgsm_getNetsantral_Report' ) ) {
+                    wp_die();
+                }
                 $json   = array();
                 $netgsm = new Netgsmsms(sanitize_text_field(get_option("netgsm_user")), sanitize_text_field(get_option("netgsm_pass")), sanitize_text_field(get_option('netgsm_input_smstitle')), sanitize_text_field(get_option("netgsm_trChar")));
                 $json = $netgsm->getVoipReport();
@@ -956,9 +978,9 @@ function netgsm_ajaxRequest()
                 if(!$netgsm_status || !$control){
                     return;
                 }
-                $message         = trim(sanitize_text_field((get_option("netgsm_abandoned_cart_to_admin_text"))));
+                $message         = trim((get_option("netgsm_abandoned_cart_to_admin_text")));
                 $durationHours   = (int) (get_option("netgsm_abandoned_cart_periyod") ?? 24);
-                $durationMinutes =  ($durationHours) * 60  * 60;   
+                $durationSecond  =  ($durationHours) * 60  * 60;   
              
                
                 $users = get_users();
@@ -970,11 +992,12 @@ function netgsm_ajaxRequest()
 
                     $now = time();
                     $last_cart_update_arr  = json_decode($last_cart_update,true);
+                    // Suan ile sepete son işlem yapılan sure farkı alındı timestamp olarak
                     $cart_duration = $now - intval($last_cart_update_arr['last_updated']);
                     $remaining_sms = intval($last_cart_update_arr['remaining_sms']);
                     if ($remaining_sms == 0) continue;
                    
-                    if ($cart_duration >= $durationMinutes ) {
+                    if ($cart_duration >= $durationSecond ) {
                         
                         if( $netgsm_status ){
                             $phone = get_user_meta($user_id, 'billing_phone', true);
@@ -983,14 +1006,17 @@ function netgsm_ajaxRequest()
                                 $data['last_name']=  get_user_meta($user->ID, 'last_name', true);
                                 $data['phone']= $phone;
                                 $data['user_email']= $user->user_email;
-                                $data['user_login']= $user->user_login;    
+                                $data['user_login']= $user->user_login;   
+                                $message         = sanitize_textarea_field(wp_unslash($message));
+                                $message         = strip_tags($message); 
                                 $data['message']= $message;    
                                
                                 $replace    = new ReplaceFunction();  
                                 $message = $replace->netgsm_replace_bulksms($data);
                                 $bulkBody  .= '<mp><msg><![CDATA[' . $message . ']]></msg><no>' . $phone . '</no></mp>';
                                 $last_update_key = $user_id . '_last_cart_update';
-                                $last_cart_update_arr['remaining_sms']= $last_cart_update_arr['remaining_sms']-1;
+                                $last_cart_update_arr['remaining_sms'] = $last_cart_update_arr['remaining_sms']-1;
+                                $last_cart_update_arr['last_updated'] = time();
                                 update_user_meta($user_id, $last_update_key, json_encode($last_cart_update_arr));
                             }
                           
@@ -1061,6 +1087,11 @@ function netgsm_ajaxRequest()
             add_action('wp_ajax_netgsm_sendSMS_bulkTab', 'netgsm_sendSMS_bulkTab');
             function netgsm_sendSMS_bulkTab()
             {
+
+                if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'netgsm_sendSMS_bulkTab' ) ) {
+                    wp_die();
+                }
+                
                 $phones = "";
                 $json   = array();
                 $phone_meta = 'billing_phone'; // Varsayılan değer
@@ -1072,15 +1103,21 @@ function netgsm_ajaxRequest()
                     $phone_meta = $contact_meta_key;
                 }
                 if (isset($_POST['users']) && isset($_POST['message'])) {
-                    $users      = explode(',', rtrim(sanitize_text_field($_POST['users']), ','));
+                    // Users input'unu temizle
+                    $users_raw = sanitize_text_field($_POST['users']);
+                    $users = array_map('sanitize_text_field', explode(',', rtrim($users_raw, ',')));
+    
                     $bulkBody   = "";
+                    $messageContent = sanitize_textarea_field(wp_unslash($_POST['message']));
+                    $messageContent = strip_tags($messageContent); 
+                    $filter = sanitize_text_field(wp_unslash($_POST['filter']));
                     $replace    = new ReplaceFunction();
                     foreach ($users as $userID) {
                         $phones    .= $replace->netgsm_spaceTrim(get_user_meta($userID, $phone_meta, true)) . ",";
                         $sendedPhone = get_user_meta($userID, $phone_meta, true);
                         $sendPhone = isset($_POST['sendPhone']) ? $_POST['sendPhone'] : 0;
                         if($userID==0 && $sendPhone !=0){
-                            $sendedPhone =$sendPhone;
+                            $sendedPhone = sanitize_text_field($sendPhone);
                         }
                         $userinfo   = get_userdata($userID);
                         $data       = array(
@@ -1089,8 +1126,8 @@ function netgsm_ajaxRequest()
                             'user_login' => $userinfo->user_login??"",
                             'phone' => $sendedPhone,
                             'user_email' => $userinfo->user_email??"",
-                            'message' => wp_unslash($_POST['message']),
-                            'filter' => wp_unslash($_POST['filter'])
+                            'message' => $messageContent,
+                            'filter' => $filter
                         );
                         $message = $replace->netgsm_replace_bulksms($data);
                         $message = $replace->netgsm_replace_date($message);
@@ -1113,11 +1150,17 @@ function netgsm_ajaxRequest()
             function netgsm_sendsms()
             {
 
+                if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'netgsm_sendsms' ) ) {
+                    wp_die();
+                }
+
                 $json = array();
                 $replace = new ReplaceFunction();
                 if (isset($_POST['phone']) && isset($_POST['message'])) {
+                  $message = sanitize_textarea_field(wp_unslash($_POST['message']));
+                  $message = strip_tags($message);
                     $netgsm = new Netgsmsms(sanitize_text_field(get_option("netgsm_user")), sanitize_text_field(get_option("netgsm_pass")), sanitize_text_field(get_option('netgsm_input_smstitle')), sanitize_text_field(get_option("netgsm_trChar")));
-                    $json = $netgsm->sendSMS(sanitize_text_field($replace->netgsm_spaceTrim($_POST['phone'])), wp_unslash($_POST['message']), $_POST['filter']);
+                    $json = $netgsm->sendSMS(sanitize_text_field($replace->netgsm_spaceTrim($_POST['phone'])), $message, sanitize_text_field($_POST['filter']));
                     //netgsm_setData($_POST['phone'], get_option('netgsm_input_smstitle'), get_option("netgsm_trChar"), $_POST['message'], 'ÖzelSMS', date('Y-m-d H:i:s'), $json['gorevid'], 0 );
                 } else {
                     $json['durum'] = '0';
@@ -1364,9 +1407,11 @@ function netgsm_ajaxRequest()
                 $phone = sanitize_text_field($_POST['phone']);
                 ltrim($phone, '0');
                 $replace = new ReplaceFunction();
+                // Kapıda ödeme ise is_cod true yap. Register işleminde false olacak
+                $is_cod = isset($_POST['type']) && sanitize_text_field($_POST['type']) == 'cod' ? true : false;
 
                 $phone_control = sanitize_text_field(get_option('netgsm_tf2_auth_register_phone_control'));
-                if ($phone_control == 1) {
+                if ($phone_control == 1 && !$is_cod) { // kayıtlı numara kontrolü yapılacak
                     $args = array(
                         'order' => 'DESC',
                         'orderby' => 'ID',
@@ -1375,7 +1420,7 @@ function netgsm_ajaxRequest()
                             'relation' => 'OR',
                             array(
                                 'key'     => 'billing_phone',
-                                'value'   => trim($_POST['phone'], '0'),
+                                'value'   => trim($phone, '0'),
                                 'compare' => 'LIKE'
                             )
                         )
@@ -1406,7 +1451,11 @@ function netgsm_ajaxRequest()
                 $netgsm_status  = esc_html(get_option("netgsm_status"));
                 if (isset($netgsm_status) && !empty($netgsm_status) && $netgsm_status == 1) {
                     if ($phone != '' && in_array(strlen($phone), [10, 11])) {
-                        $otpregister_control = esc_html(get_option("netgsm_tf2_auth_register_control"));
+                        if ($is_cod) {
+                            $otpregister_control = esc_html(get_option('netgsm_tf2_cash_on_delivery_control'));
+                        } else {
+                            $otpregister_control = esc_html(get_option("netgsm_tf2_auth_register_control"));
+                        }
                         if ($otpregister_control == 1) {
                             $first_name = sanitize_text_field($_POST['first_name']);
                             $last_name = sanitize_text_field($_POST['last_name']);
@@ -1421,7 +1470,11 @@ function netgsm_ajaxRequest()
                                 $now =  time();
                                 $diff = $now - $sendTime;
 
-                                $savedDiff  = esc_html(get_option("netgsm_tf2_auth_register_diff"));
+                                if ($is_cod) {
+                                    $savedDiff  = esc_html(get_option("netgsm_tf2_cash_on_delivery_diff"));
+                                } else {
+                                    $savedDiff  = esc_html(get_option("netgsm_tf2_auth_register_diff"));;
+                                }
                                 if ($savedDiff == '' || !is_numeric($savedDiff)) {
                                     $savedDiff = 180;
                                 }
@@ -1440,7 +1493,12 @@ function netgsm_ajaxRequest()
                                 add_post_meta(1, $phone . '_2fa_time', date('Y-m-d H:i:s', time()));
                                 add_post_meta(1, $phone . '_2fa_ref', $refno);
                             }
-
+                            if ($is_cod) {
+                                $messageContent  = sanitize_textarea_field(wp_unslash(get_option("netgsm_tf2_cash_on_delivery_text")));
+                            } else {
+                                $messageContent  = sanitize_textarea_field(wp_unslash(get_option("netgsm_tf2_auth_register_text")));;
+                            }
+                            $messageContent = strip_tags($messageContent);
                             $data  = array(
                                 'first_name' => $first_name,
                                 'last_name' => $last_name,
@@ -1448,7 +1506,7 @@ function netgsm_ajaxRequest()
                                 'user_email' => $email,
                                 'otpcode' => $authKey,
                                 'refno' => $refno,
-                                'message' => (sanitize_text_field(get_option("netgsm_tf2_auth_register_text")))
+                                'message' =>  $messageContent
                             );
                             $message = $replace->netgsm_replace_twofactorauth_text($data);
                             $message = $replace->netgsm_replace_date($message);
@@ -1461,7 +1519,7 @@ function netgsm_ajaxRequest()
                                 echo json_encode(['status' => 'success', 'data' => 'Doğrulama gönderildi.', 'phone' => $phone, 'refno' => $refno]);
                             } else {
                                 update_post_meta(1, $phone . '_2fa_time',  '1970-01-01 12:12:12');
-                                echo json_encode(['status' => 'error', 'state' => '1', 'data' => 'Doğrulama kodu gönderilemedi. ' . $result->mesaj]);
+                                echo json_encode(['status' => 'error', 'state' => '1', 'data' => 'Doğrulama kodu gönderilemedi. ' . $result['mesaj'] ?? '']);
                             }
                         } else {
                             echo json_encode(['status' => 'error', 'state' => '3', 'data' => 'OTP kontrol açık değil.']);
@@ -1653,13 +1711,15 @@ function netgsm_ajaxRequest()
                     $userinfo       = get_userdata($customer_id);
                     if (isset($newuser1) && !empty($newuser1) && $newuser1 == 1) {   //admine mesaj
                         $phone      = esc_html(get_option('netgsm_newuser_to_admin_no'));
+                        $messageContent         = sanitize_textarea_field(wp_unslash(get_option('netgsm_newuser_to_admin_text')));
+                        $messageContent         = strip_tags($messageContent);
                         $data       = array(
                             'first_name' => $first_name,
                             'last_name' => $last_name,
                             'user_login' => $userinfo->user_login,
                             'phone' => $billing_phone,
                             'user_email' => $userinfo->user_email,
-                            'message' => (get_option('netgsm_newuser_to_admin_text'))
+                            'message' => $messageContent
                         );
                         $message    = $replace->netgsm_replace_newuser_to_text($data);
                         $message = $replace->netgsm_replace_date($message);
@@ -1667,13 +1727,15 @@ function netgsm_ajaxRequest()
                         netgsm_sendSMS_oneToMany($phone, $message, ['startDate' => $custom_settings_admin]);
                     }
                     if (isset($newuser2) && !empty($newuser2) && $newuser2 == 1) {   //müşteriye mesaj
+                        $messageContent         = sanitize_textarea_field(wp_unslash(get_option('netgsm_newuser_to_customer_text')));
+                        $messageContent         = strip_tags($messageContent);
                         $data       = array(
                             'first_name' => $first_name,
                             'last_name' => $last_name,
                             'user_login' => $userinfo->user_login,
                             'phone' => $billing_phone,
                             'user_email' => $userinfo->user_email,
-                            'message' => (sanitize_text_field(get_option('netgsm_newuser_to_customer_text')))
+                            'message' => $messageContent 
                         );
                         $message    = $replace->netgsm_replace_newuser_to_text($data);
                         $message = $replace->netgsm_replace_date($message);
@@ -1806,6 +1868,8 @@ function netgsm_ajaxRequest()
                     if (isset($neworder1) && !empty($neworder1) && $neworder1 == 1 && (in_array($adminpanel, [0, 1]))) {   //admine mesaj
                         $phone      = esc_html(get_option('netgsm_neworder_to_admin_no'));
                         $username = explode('@', $order->billing_email);
+                        $messageContent         = sanitize_textarea_field(wp_unslash(get_option('netgsm_neworder_to_admin_text')));
+                        $messageContent         = strip_tags($messageContent);
 
                         $data   = array(
                             'order_id' => $order_id,
@@ -1818,7 +1882,7 @@ function netgsm_ajaxRequest()
                             'items' => $products_info,
                             'items_kdv' => $products_info_kdv,
                             'items_name' => $prouducts_name,
-                            'message' => (sanitize_text_field(get_option('netgsm_neworder_to_admin_text'))),
+                            'message' => $messageContent,
                         );
                         $message = $replace->netgsm_replace_neworder_to_text($data);
                         $message = $replace->netgsm_replace_order_meta_datas($order, $message);
@@ -1845,6 +1909,8 @@ function netgsm_ajaxRequest()
                         if ($sendsmsphone == '' || !is_numeric($sendsmsphone)) {
                             $sendsmsphone = $order->billing_phone;
                         }
+                        $messageContent         = sanitize_textarea_field(wp_unslash(get_option('netgsm_neworder_to_customer_text')));
+                        $messageContent         = strip_tags($messageContent);
                         $data   = array(
                             'order_id' => $order_id,
                             'total' => $order->total,
@@ -1856,7 +1922,7 @@ function netgsm_ajaxRequest()
                             'items' => $products_info,
                             'items_kdv' => $products_info_kdv,
                             'items_name' => $prouducts_name,
-                            'message' => (sanitize_text_field(get_option('netgsm_neworder_to_customer_text')))
+                            'message' =>  $messageContent
                         );
                         $message    = $replace->netgsm_replace_neworder_to_text($data);
                         $message = $replace->netgsm_replace_order_meta_datas($order, $message);
@@ -1880,7 +1946,8 @@ function netgsm_ajaxRequest()
             function netgsm_order_status_cancelled($order_id)
             {
                 $control         = esc_html(get_option("netgsm_order_refund_to_admin_control"));
-                $message         = sanitize_text_field((get_option("netgsm_order_refund_to_admin_text")));
+                $message         = sanitize_textarea_field(wp_unslash(get_option('netgsm_order_refund_to_admin_text')));
+                $message         = strip_tags($messageContent);
                 $phones          = esc_html(get_option("netgsm_order_refund_to_admin_no"));
                 $netgsm_status   = esc_html(get_option("netgsm_status"));
                 $replace         = new ReplaceFunction();
@@ -1948,7 +2015,8 @@ function netgsm_ajaxRequest()
             function netgsm_order_status_changed_sendSMS($order_id, $text, $this_status_transition_to)
             {
                 $control         = esc_html(get_option("netgsm_orderstatus_change_customer_control"));
-                $message         = sanitize_text_field(get_option($text));
+                $message         = sanitize_textarea_field(wp_unslash(get_option($text)));
+                $message         = strip_tags($message);
                 $netgsm_status   = esc_html(get_option("netgsm_status"));
                 $replace         = new ReplaceFunction();
 
@@ -1957,6 +2025,7 @@ function netgsm_ajaxRequest()
                     if (isset($control) && !empty($control) && $control == 1) {
                         if (isset($message) && !empty($message)) {
                             $order           = new WC_Order($order_id);
+                            $orderPrice = $order->get_total();
                             $userinfo        = get_userdata($order->customer_id);
                             $trackingCode = '';
                             $trackingCompany = '';
@@ -1977,8 +2046,10 @@ function netgsm_ajaxRequest()
                             }
                             if ((isset($userinfo->user_login) && $userinfo->user_login != '')) {
                                 $user_login = $userinfo->user_login;
+                            } else if(!empty($order->shipping_first_name)) {
+                                $user_login = $order->shipping_first_name . ' '. $order->shipping_last_name;
                             } else {
-                                $user_login = $order->shipping_first_name . $order->shipping_last_name;
+                                $user_login = $order->billing_first_name . ' ' . $order->billing_last_name;
                             }
 
 
@@ -1999,12 +2070,14 @@ function netgsm_ajaxRequest()
 
                             $data       = array(
                                 'order_id' => $order_id,
-                                'first_name' => $order->shipping_first_name,
-                                'last_name' => $order->shipping_last_name,
+                                
+                                'first_name' => !empty($order->shipping_first_name) ? $order->shipping_first_name : $order->billing_first_name,
+                                'last_name' => !empty($order->shipping_last_name) ? $order->shipping_last_name : $order->billing_last_name,
                                 'user_login' => $user_login,
                                 'phone' => $sendsmsphone,
                                 'user_email' => $order->billing_email,
                                 'message' => $message,
+                                'siparis_tutar' => $orderPrice,
                                 'trackingCompany' => $replace->netgsm_replace_shipping_company($trackingCompany),
                                 'trackingCode' => $trackingCode
                             );
@@ -2055,6 +2128,8 @@ function netgsm_ajaxRequest()
                 $replace         = new ReplaceFunction();
                 if (isset($netgsm_status) && !empty($netgsm_status) && $netgsm_status == 1) {
                     if (isset($customermessage) && !empty($customermessage)) {
+                        $customermessage = sanitize_textarea_field(wp_unslash($customermessage));
+                        $customermessage = strip_tags($customermessage);
                         $order           = new WC_Order($order_id);
                         $userinfo        = get_userdata($order->customer_id);
 
@@ -2257,6 +2332,8 @@ function netgsm_ajaxRequest()
                                     $replace = new ReplaceFunction();
                                     $message = $replace->netgsm_cf7_replace_all_var($posted_data, $customer_message);
                                     $message = $replace->netgsm_replace_date($message);
+                                    $message = sanitize_textarea_field(wp_unslash($message));
+                                    $message = strip_tags($message);
                                     netgsm_sendSMS_oneToMany($phone_customer, $message);
                                 }
                             }
@@ -2268,6 +2345,8 @@ function netgsm_ajaxRequest()
                                 $replace = new ReplaceFunction();
                                 $message = $replace->netgsm_cf7_replace_all_var($posted_data, $admin_message);
                                 $message = $replace->netgsm_replace_date($message);
+                                $message = sanitize_textarea_field(wp_unslash($message));
+                                $message = strip_tags($message);
                                 netgsm_sendSMS_oneToMany($phone_admin, $message);
                             }
                         }
@@ -2323,6 +2402,37 @@ function netgsm_ajaxRequest()
             add_action('wp_footer', 'netgsm_connection_button');
             function netgsm_connection_button()
             {
+                if (sanitize_text_field(get_option('netgsm_tf2_cash_on_delivery_control')) == '1') {
+                    ?>
+                    <script>
+                        jQuery(function ($) {
+
+                            function toggleOtpArea() {
+                                let method = $('input[name="payment_method"]:checked').val();
+                                if (method === 'cod') {
+                                    $('#cod-otp-area').slideDown();
+                                } else {
+                                    $('#cod-otp-area').slideUp();
+                                }
+                            }
+
+                            // 1️⃣ WooCommerce checkout render edildiğinde
+                            $(document.body).on('updated_checkout', function () {
+                                toggleOtpArea();
+                            });
+
+                            // 2️⃣ Ödeme yöntemi manuel değişirse
+                            $(document).on('change', 'input[name="payment_method"]', function () {
+                                toggleOtpArea();
+                            });
+
+                            // 3️⃣ Fallback (çok nadir durumlar için)
+                            setTimeout(toggleOtpArea, 500);
+
+                        });
+                    </script>
+                    <?php
+                }
                 if (get_option('netgsm_asistan') == '1') {
                     $plugin_url = plugin_dir_url(__FILE__);
                     wp_enqueue_style('style1', $plugin_url . 'lib/css/style.css');
@@ -2577,6 +2687,115 @@ function netgsm_ajaxRequest()
                 require_once ABSPATH . 'wp-admin/includes/upgrade.php';
                 dbDelta($sql);
             }
+
+            add_action('woocommerce_review_order_before_submit', function () {
+                ?>
+                <div id="cod-otp-area" style="display:none; margin-top:15px;">
+                    <p>
+                        <input type="button" class="input-text button"  value="OTP Gönder" style="width:100%;" onclick="sendtf2CodeCod()"/>
+                    </p>
+            
+                    <p>
+                        <input type="text"
+                               name="cod_otp"
+                               id="cod_otp"
+                               placeholder="OTP Kodunu Giriniz"
+                               class="input-text"
+                               style="width:100%;"/>
+                    </p>
+                </div>
+                <script>
+                    function sendtf2CodeCod() {
+                        var firstname = jQuery('#billing_first_name').val();
+                        var lastname = jQuery('#billing_last_name').val();
+                        var phone = jQuery('#billing_phone').val();
+                        var email = jQuery("input[name*='billing_email']").val();
+            
+                        var error = '';
+                        if (firstname == '') {
+                            error += '> İsim girilmedi.\n';
+                        }
+                        if (lastname == '') {
+                            error += '> Soyisim girilmedi.\n';
+                        }
+                        if (email == '') {
+                            error += '> E-mail adresi girilmedi.\n';
+                        }
+                        if (phone == '') {
+                            error += '> Telefon numarası girilmedi.\n';
+                        }
+            
+                        <?php
+                        if (sanitize_text_field(get_option('netgsm_tf2_cash_on_delivery_control')) == '1') {
+                        ?>
+                        if (phone.slice(0, 1) != '0') {
+                            error += '> Telefon numarası 0 ile başlamalıdır.\n';
+                        }
+                        <?php
+                        }
+                        ?>
+            
+                        if (error != '') {
+                            alert('Aşağıdaki hatalar alındı : \n\n' + error);
+                            return false;
+                        }
+            
+                        var data = {
+                            'action': 'netgsm_sendtf2SMS',
+                            'type': 'cod',
+                            'phone': phone,
+                            'first_name': firstname,
+                            'last_name': lastname,
+                            'email': email
+                        };
+            
+                        jQuery.post(<?php echo json_encode(admin_url('admin-ajax.php')); ?>, data, function (response) {
+                            var endChar = response.substring(response.length - 1);
+                            if (endChar == '0') {
+                                response = response.substring(0, (response.length - 1));
+                            }
+            
+                            var obje = JSON.parse(response);
+                            if (obje.status == 'success') {
+                                alert('Lütfen ' + obje.phone + ' numaralı telefonunuza gelen güvenlik kodunu giriniz.');
+                                jQuery('#tf2Codealert').html('*Lütfen ' + obje.phone + ' numaralı telefonunuza gelen ' + obje.refno + ' referans numaralı güvenlik kodunu giriniz.');
+                                document.getElementById("tf2Code").focus();
+                                jQuery('#sendCode').prop('disabled', true);
+                            } else {
+                                if (obje.status == 'error' && obje.state == 1) {
+                                    alert(obje.data + ' Lütfen site yöneticisi ile iletişime geçin.');
+                                } else if (obje.status == 'error' && obje.state == 2) {
+                                    alert(obje.data);
+                                } else if (obje.status == 'error' && obje.state == 4) {
+                                    alert(obje.data);
+                                } else if (obje.status == 'error' && obje.state == 5) {
+                                    alert(obje.data);
+                                } else {
+                                    alert('Bilinmeyen bir hata oluştu. GSM numarası girdiğinize emin olun. Sorunun devam etmesi halinde lütfen site yöneticisi ile iletişime geçin.');
+                                }
+                            }
+                        });
+                    }
+                </script>
+                <?php
+            });
+            add_action('woocommerce_checkout_process', function () {
+            
+                if (isset($_POST['payment_method']) && $_POST['payment_method'] === 'cod') {
+            
+                    $netgsm_status = esc_html(get_option("netgsm_status"));
+                    $netgsm_otp_cod = esc_html(get_option("netgsm_tf2_cash_on_delivery_control"));
+                    if (isset($netgsm_status) && !empty($netgsm_status) && $netgsm_status == 1 &&
+                        isset($netgsm_otp_cod) && !empty($netgsm_otp_cod) && $netgsm_otp_cod == 1) {
+            
+                        $verified_code = get_post_meta(1, $_POST['billing_phone'] . '_2fa', true) ?? '';
+                        $code = $_POST['cod_otp'];
+                        if ($code != $verified_code) {
+                            wc_add_notice('Doğrulama kodunu yanlış girdiniz!', 'error');
+                        }
+                    }
+                }
+            });
 /*
     global $jal_db_version;
     $jal_db_version = '4.1';

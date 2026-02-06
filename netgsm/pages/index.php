@@ -837,6 +837,9 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                                         <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'takip_kodu')">
                                                             [takip_kodu]
                                                         </mark>&nbsp;
+                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'siparis_tutar')">
+                                                            [siparis_tutar]
+                                                        </mark>&nbsp;
                                                         <i class="fa fa-certificate" style="color: #681947;"></i>
                                                     </p>
                                                 </div>
@@ -1140,6 +1143,57 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                                             <i class="fa fa-clock-o" style="color: #17A2B8;"></i>
                                                         </div>
                                                         <input name="netgsm_tf2_auth_register_diff" class="form-control" placeholder="Kod geçerlilik süresi (sn.) örn: 120" value="<?= esc_html(get_option("netgsm_tf2_auth_register_diff")) ?>">
+                                                    </div>
+                                                    <p>Not : Bu süre boyunca aynı numaraya tekrar kod göndermek
+                                                        istense bile gönderilmeyecektir. Süreyi saniye olarak
+                                                        yazınız. (varsayılan olarak 180sn. )</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div><div class="form-group">
+                                    <!-- Kapıda ödeme özelliği aç kapa -->
+                                    <div class="row">
+                                        <div class="col-sm-3">
+                                            <div class="col-sm-7">
+                                                <label class="control-label" for="netgsm_neworder_to_admin_no">
+                                                    <i class="fa fa-certificate" style="color: #3498DB;"></i>
+                                                    <i class="fa fa-certificate" style="color: #BB77AE;"></i>
+                                                    <i class="fa fa-certificate" style="color: #E74C3C;"></i> Kapıda ödeme işleminde <b style="color: #E74C3C;" data-toggle="tooltip" data-placement="top" title="OTP SMS paketinden ücretlendirilir. OTP SMS paketizin olduğuna emin olun.">OTP
+                                                        SMS</b> ile doğrulama yap :</label>
+                                            </div>
+                                            <div class="col-sm-5">
+                                                <label class="switch">
+                                                    <input name="netgsm_tf2_cash_on_delivery_control" id="netgsm_switch22" type="checkbox" onchange="netgsm_field_onoff(22)" value="1" <?php if ((get_option('netgsm_tf2_cash_on_delivery_control')) == 1) { ?>checked <?php } ?>>
+                                                    <span class="slider round"></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-9" id="netgsm_field22" style="<?php if ((get_option('netgsm_tf2_cash_on_delivery_control')) != 1) { ?>display:none; <?php } ?>">
+                                            <div class="row">
+                                                <div class="col-sm-12">
+                                                    <div class="input-group">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
+                                                        </div>
+                                                        <textarea name="netgsm_tf2_cash_on_delivery_text" id="netgsm_textarea22" class="form-control" placeholder="Tek seferlik doğrulama kodunuz : [kod]
+                                            *OTP SMS tek boy gönderilebilir.
+                                            *Metin taslağı 140 karakter ile sınırlandırılmıştır." maxlength="140"><?= esc_html(get_option("netgsm_tf2_cash_on_delivery_text")) ?></textarea>
+                                                    </div>
+                                                    <p id="netgsm_tags_text22" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
+                                                        Kullanabileceğiniz Değişkenler : </i></p>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-2">
+                                                    <p style="margin-top: 5px;">Kod geçerlilik süresi(sn):</p>
+                                                </div>
+                                                <div class="col-sm-10">
+                                                    <div class="input-group">
+                                                        <div class="input-group-addon">
+                                                            <i class="fa fa-clock-o" style="color: #17A2B8;"></i>
+                                                        </div>
+                                                        <input name="netgsm_tf2_cash_on_delivery_diff" class="form-control" placeholder="Kod geçerlilik süresi (sn.) örn: 120" value="<?= esc_html(get_option("netgsm_tf2_cash_on_delivery_diff")) ?>">
                                                     </div>
                                                     <p>Not : Bu süre boyunca aynı numaraya tekrar kod göndermek
                                                         istense bile gönderilmeyecektir. Süreyi saniye olarak
@@ -1613,9 +1667,9 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
         var field19 = [''];
         var field20 = [''];
         var field21 = [''];
-        var field22 = [''];
+        var field22 = ['kod', 'telefon_no', 'ad', 'soyad', 'mail'];
         var field23 = [''];
-        for (var x = 1; x <= 14; x++) {
+        for (var x = 1; x <= 22; x++) {
             if (x != 5) { //değişkeni olmayan idler
                 var field = window['field' + x];
                 if (field) {
