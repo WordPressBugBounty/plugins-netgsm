@@ -75,63 +75,48 @@ class Netgsmsms
     }
     public function iysDurumControl($filter)
     {
-        //giriş sayfasında gelen mesah turu icerik bilgisi netgsm_iys_control
         $netgsm_iys_control = sanitize_text_field(get_option("netgsm_iys_control"));
-        //iys bolumunden gelen iys kontrolu
         $netgsm_brandcode_control = sanitize_text_field(get_option("netgsm_brandcode_control"));
         $netgsm_recipient_type = sanitize_text_field(get_option("netgsm_recipient_type"));
         $netgsm_brandcode_text = sanitize_text_field(get_option("netgsm_brandcode_text"));
 
         $starterFilter = $filter;
 
+        // Kullanıcı Özel SMS veya Toplu SMS'te açıkça içerik türü seçtiyse
+        // giriş sekmesi ayarı devreye girmez, seçim önceliklidir.
+        if ($starterFilter != 0) {
+            switch ($starterFilter) {
+                case 1:
+                    return 11; // Kampanya bireysel
+                case 2:
+                    return 12; // Kampanya tacir
+                case 3:
+                    // Bilgilendirme: marka kodu tanımlıysa 13, değilse 0
+                    return ($netgsm_brandcode_control && $netgsm_brandcode_text != '') ? 13 : 0;
+            }
+        }
 
-
+        // Otomatik SMS (sipariş bildirimleri vb.) için giriş sekmesi ayarlarını kullan
         if ($netgsm_brandcode_control && $netgsm_brandcode_text != "") {
             switch ($netgsm_recipient_type) {
-                case 0:
-                    $filter = 0;
-                    break;
-                case 1:
-                    $filter = 11;
-                    break;
-                case 2:
-                    $filter = 12;
-                    break;
-                case 3:
-                    $filter = 13;
-                    break;
-
-                default:
-                    $filter = 0;
-                    break;
+                case 0:  $filter = 0;  break;
+                case 1:  $filter = 11; break;
+                case 2:  $filter = 12; break;
+                case 3:  $filter = 13; break;
+                default: $filter = 0;  break;
             }
         }
 
         if ($netgsm_iys_control) {
             switch ($netgsm_iys_control) {
-                case 0:
-                    $filter = 0;
-                    break;
-                case 1:
-                    $filter = 11;
-                    break;
-                case 2:
-                    $filter = 12;
-                    break;
-                case 3:
-                    $filter = 0;
-                    break;
-
-                default:
-                    $filter = 0;
-                    break;
+                case 0:  $filter = 0;  break;
+                case 1:  $filter = 11; break;
+                case 2:  $filter = 12; break;
+                case 3:  $filter = 0;  break;
+                default: $filter = 0;  break;
             }
         }
 
-        if ($netgsm_brandcode_control && $starterFilter == 3) {
-
-            $filter = 13;
-        }
         if ($netgsm_brandcode_control && $netgsm_brandcode_text == '') {
             $filter = 0;
         }

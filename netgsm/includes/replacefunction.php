@@ -53,8 +53,8 @@ class ReplaceFunction
 
     public function netgsm_replace_shipping_company($data)
     {
-        $istenmeyen = array('mng', 'surat', 'yk', 'aras');
-        $degisen    = array('MNG Kargo','Sürat Kargo','Yurtiçi Kargo','Aras Kargo');
+        $istenmeyen = array('ptt', 'yurtici', 'aras', 'mng', 'horoz', 'ups', 'surat', 'filo', 'tnt', 'dhl', 'fedex', 'foodman', 'postman', 'iyi', 'tex', 'hepsijet', 'Sendeo', 'carrtell', 'kolaygelsin', 'dhlecommerce', 'cdek', 'birgunde', 'brinks', 'jetizz', 'kargoturk', 'kargoist', 'packupp', 'scotty');
+        $degisen    = array('PTT Kargo', 'Yurtiçi Kargo', 'Aras Kargo', 'MNG Kargo', 'Horoz Kargo', 'UPS Kargo', 'Sürat Kargo', 'Filo Kargo', 'TNT Kargo', 'DHL Kargo', 'Fedex Kargo', 'FoodMan Kargo', 'Postman Kargo', 'İyi Kargo', 'Trendyol Express', 'HepsiJET', 'Sendeo Kargo', 'Carrtell Kargo', 'Kolay Gelsin', 'DHL eCommerce', 'CDEK', 'Birgünde Kargo', 'Brinks Kargo', 'Jetizz', 'Kargo Türk', 'Kargoist', 'PackUpp', 'Scotty');
         $result      = str_replace($istenmeyen, $degisen, $data);
         return $result;
     }

@@ -5,7 +5,7 @@ Plugin URI: https://wordpress.org/plugins/netgsm/
 Description: Netgsm hesabınız ile Woocommerce müşterileriniz yeni sipariş verdiğinde, yeni kayıt olan müşterileriniz olduğunda ve toplu smslerde kişiye özel ve yöneticilere sms gönderebileceğiniz bir eklentidir. Bunun yanısıra kişiye özel toplu ve özel sms gönderebilir, Gelen kutunuzdaki smsleri anında cevaplaya bilirsiniz. Yeni kayıt olan müşterileriniz netgsm rehberine ekleyebilir, siparişlerin durumları değiştiğinde kargo takip kodu gibi bilgileri müşterilerinize otomatik olarak gönderebilirsiniz. Ayrıca Contact Form 7 formlarınızda sms gönderimi sağlayabilirsiniz.
 Author: Netgsm
 Author URI: www.netgsm.com.tr
-Version: 2.9.69
+Version: 2.9.70
 
 
 */
@@ -192,6 +192,9 @@ function netgsm_options()
     register_setting('netgsmoptions', 'netgsm_iys_check_text');
     register_setting('netgsmoptions', 'netgsm_iys_check_control');
 
+    register_setting('netgsmoptions', 'netgsm_iys_checkout_control');
+    register_setting('netgsmoptions', 'netgsm_iys_checkout_text');
+
     register_setting('netgsmoptions', 'netgsm_brandcode_control');
     register_setting('netgsmoptions', 'netgsm_brandcode_text');
     register_setting('netgsmoptions', 'netgsm_recipient_type');
@@ -274,6 +277,216 @@ function netgsm_getCustomSetting($key, $search)
 }
 
 add_action('admin_footer', 'netgsm_ajaxRequest');
+
+// Classic checkout (shortcode tabanlı)
+add_action('woocommerce_review_order_before_submit', function () {
+    $netgsm_status = get_option('netgsm_status');
+    $iys_checkout_control = get_option('netgsm_iys_checkout_control');
+    if ($netgsm_status != 1 || $iys_checkout_control != 1) {
+        return;
+    }
+    $iys_text = esc_html(get_option('netgsm_iys_checkout_text'));
+    $types = type_array();
+    $requires_phone = (in_array('MESAJ', $types) || in_array('ARAMA', $types)) ? 'true' : 'false';
+    $requires_email = in_array('EPOSTA', $types) ? 'true' : 'false';
+    ?>
+    <div id="netgsm-iys-checkout" style="margin-bottom: 15px;">
+        <p class="form-row">
+            <label class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox">
+                <input type="checkbox" name="netgsm_iys_checkout" id="netgsm_iys_checkout" value="1" class="woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" />
+                <span><?php echo $iys_text; ?></span>
+            </label>
+        </p>
+    </div>
+    <script>
+    (function () {
+        var requiresPhone = <?php echo $requires_phone; ?>;
+        var requiresEmail = <?php echo $requires_email; ?>;
+
+        function setFieldRequired(fieldId, checked) {
+            var field = document.getElementById(fieldId);
+            if (!field) return;
+            field.required = checked;
+
+            // Label içindeki .optional span ve .required abbr'yi güncelle
+            var wrap = field.closest('.form-row') || field.parentElement;
+            if (!wrap) return;
+            var label = wrap.querySelector('label');
+            if (!label) return;
+
+            var optionalSpan = label.querySelector('.optional');
+            var requiredAbbr = label.querySelector('abbr.required');
+
+            if (checked) {
+                if (optionalSpan) optionalSpan.style.display = 'none';
+                if (!requiredAbbr) {
+                    var abbr = document.createElement('abbr');
+                    abbr.className = 'required';
+                    abbr.title = 'required';
+                    abbr.setAttribute('aria-required', 'true');
+                    abbr.textContent = '\u00a0*';
+                    abbr.setAttribute('data-netgsm-iys', '1');
+                    label.appendChild(abbr);
+                }
+            } else {
+                if (optionalSpan) optionalSpan.style.display = '';
+                if (requiredAbbr && requiredAbbr.getAttribute('data-netgsm-iys')) {
+                    requiredAbbr.remove();
+                }
+            }
+        }
+
+        function applyIysRequired(checked) {
+            if (requiresPhone) setFieldRequired('billing_phone', checked);
+            if (requiresEmail) setFieldRequired('billing_email', checked);
+        }
+
+        function bindCheckbox() {
+            var cb = document.getElementById('netgsm_iys_checkout');
+            if (!cb) return;
+            cb.addEventListener('change', function () {
+                applyIysRequired(this.checked);
+            });
+            applyIysRequired(cb.checked);
+        }
+
+        // İlk yükleme ve WooCommerce updated_checkout sonrası
+        document.addEventListener('DOMContentLoaded', bindCheckbox);
+        if (typeof jQuery !== 'undefined') {
+            jQuery(document.body).on('updated_checkout', bindCheckbox);
+        }
+    })();
+    </script>
+    <?php
+}, 5);
+
+// Classic checkout - sipariş meta kayıt
+add_action('woocommerce_checkout_update_order_meta', function ($order_id) {
+    $netgsm_status = get_option('netgsm_status');
+    $iys_checkout_control = get_option('netgsm_iys_checkout_control');
+    if ($netgsm_status != 1 || $iys_checkout_control != 1) {
+        return;
+    }
+    $iys_value = isset($_POST['netgsm_iys_checkout']) ? '1' : '0';
+    update_post_meta($order_id, '_netgsm_iys_checkout', $iys_value);
+    if ($iys_value === '1') {
+        $order = wc_get_order($order_id);
+        $customer_id = $order ? $order->get_customer_id() : 0;
+        if ($customer_id > 0) {
+            update_user_meta($customer_id, 'netgsm_kvkk_check', '1');
+        }
+        netgsm_iys_register_from_order($order);
+    }
+});
+
+// Block checkout - alan kaydı
+add_action('woocommerce_blocks_loaded', function () {
+    if (!function_exists('woocommerce_register_additional_checkout_field')) {
+        return;
+    }
+    $netgsm_status = get_option('netgsm_status');
+    $iys_checkout_control = get_option('netgsm_iys_checkout_control');
+    if ($netgsm_status != 1 || $iys_checkout_control != 1) {
+        return;
+    }
+    $iys_text = get_option('netgsm_iys_checkout_text', '');
+    woocommerce_register_additional_checkout_field([
+        'id'       => 'netgsm/iys_consent',
+        'label'    => $iys_text,
+        'location' => 'order',
+        'type'     => 'checkbox',
+        'required' => false,
+    ]);
+});
+
+// Block checkout - sipariş meta kayıt
+add_action('woocommerce_store_api_checkout_update_order_from_request', function ($order, $request) {
+    $netgsm_status = get_option('netgsm_status');
+    $iys_checkout_control = get_option('netgsm_iys_checkout_control');
+    if ($netgsm_status != 1 || $iys_checkout_control != 1) {
+        return;
+    }
+    $additional_fields = $request->get_param('additional_fields') ?? [];
+    $iys_value = !empty($additional_fields['netgsm/iys_consent']) ? '1' : '0';
+    $order->update_meta_data('_netgsm_iys_checkout', $iys_value);
+    if ($iys_value === '1') {
+        $customer_id = $order->get_customer_id();
+        if ($customer_id > 0) {
+            update_user_meta($customer_id, 'netgsm_kvkk_check', '1');
+        }
+        netgsm_iys_register_from_order($order);
+    }
+}, 10, 2);
+
+// Classic checkout - IYS alan doğrulama (tema bağımsız, sunucu taraflı)
+add_action('woocommerce_checkout_process', function () {
+    $netgsm_status = get_option('netgsm_status');
+    $iys_checkout_control = get_option('netgsm_iys_checkout_control');
+    if ($netgsm_status != 1 || $iys_checkout_control != 1) {
+        return;
+    }
+    if (empty($_POST['netgsm_iys_checkout']) || $_POST['netgsm_iys_checkout'] != '1') {
+        return;
+    }
+    $types = type_array();
+    if ((in_array('MESAJ', $types) || in_array('ARAMA', $types)) && empty(trim($_POST['billing_phone'] ?? ''))) {
+        wc_add_notice('IYS izni için telefon numarası zorunludur.', 'error');
+    }
+    if (in_array('EPOSTA', $types) && empty(trim($_POST['billing_email'] ?? ''))) {
+        wc_add_notice('IYS izni için e-posta adresi zorunludur.', 'error');
+    }
+});
+
+// Block checkout - IYS alan doğrulama (tema bağımsız, sunucu taraflı)
+add_action('woocommerce_store_api_checkout_update_order_from_request', function ($order, $request) {
+    $netgsm_status = get_option('netgsm_status');
+    $iys_checkout_control = get_option('netgsm_iys_checkout_control');
+    if ($netgsm_status != 1 || $iys_checkout_control != 1) {
+        return;
+    }
+    $additional_fields = $request->get_param('additional_fields') ?? [];
+    if (empty($additional_fields['netgsm/iys_consent'])) {
+        return;
+    }
+    $billing = $request->get_param('billing_address') ?? [];
+    $types = type_array();
+    $errors = [];
+    if ((in_array('MESAJ', $types) || in_array('ARAMA', $types)) && empty(trim($billing['phone'] ?? ''))) {
+        $errors[] = 'IYS izni için telefon numarası zorunludur.';
+    }
+    if (in_array('EPOSTA', $types) && empty(trim($billing['email'] ?? ''))) {
+        $errors[] = 'IYS izni için e-posta adresi zorunludur.';
+    }
+    if (!empty($errors)) {
+        throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+            'netgsm_iys_validation',
+            implode(' ', $errors),
+            400
+        );
+    }
+}, 5, 2);
+
+// Ortak IYS kayıt fonksiyonu
+function netgsm_iys_register_from_order($order) {
+    if (!$order) return;
+    if (get_option('netgsm_brandcode_control') != '1' || get_option('netgsm_brandcode_text') == '') {
+        return;
+    }
+    $billing_phone = $order->get_billing_phone();
+    $billing_email = $order->get_billing_email();
+    if (empty($billing_phone) || empty(type_array())) {
+        return;
+    }
+    $netgsm = new Netgsmsms(
+        sanitize_text_field(get_option('netgsm_user')),
+        sanitize_text_field(get_option('netgsm_pass'))
+    );
+    date_default_timezone_set('Europe/Istanbul');
+    $brand_code = sanitize_text_field(get_option('netgsm_brandcode_text'));
+    $recipient_type_option = sanitize_text_field(get_option('netgsm_recipient_type'));
+    $recipient_type = ($recipient_type_option == '2') ? 'TACIR' : 'BIREYSEL';
+    $netgsm->iysadd(iys_phonecontrol($billing_phone), $billing_email, date('Y-m-d H:i:s'), $brand_code, $recipient_type, type_array());
+}
 function netgsm_ajaxRequest()
 { ?>
     <script type="text/javascript">
@@ -329,7 +542,8 @@ function netgsm_ajaxRequest()
             return str;
         }
         function netgsm_sendSMS_bulkTab(id = "",$phone=0) {
-            document.getElementById('bulkSMSbtn').disabled = true;
+            var bulkBtn = document.getElementById('bulkSMSbtn');
+            if (bulkBtn) bulkBtn.disabled = true;
             var users = [];
             var numberstext;
             if (id != "") {
@@ -376,12 +590,13 @@ function netgsm_ajaxRequest()
                                 var content_type = document.getElementById('swal-input2').selectedIndex;
                                 var filter = content_type;
                                 if (content_type == '0') {
+                                    resolve();
                                     swal({
                                         title: "Mesaj içerik türü seçilmedi.",
                                         text: "Lütfen sms göndermek için mesaj içerik türü seçiniz.",
                                         type: 'error',
                                     });
-                                } else {                                   
+                                } else {
                                     var data = {
                                         'action': 'netgsm_sendSMS_bulkTab',
                                         'users': users,
@@ -392,7 +607,7 @@ function netgsm_ajaxRequest()
                                     };
                                     jQuery.post(ajaxurl, data, function(response) {
                                         var obje = JSON.parse(response);
-
+                                        resolve();
                                         if (obje.durum == 1) {
                                             swal({
                                                 title: "BAŞARILI!",
@@ -406,20 +621,26 @@ function netgsm_ajaxRequest()
                                                 type: 'error'
                                             });
                                         }
+                                        if (bulkBtn) bulkBtn.disabled = false;
                                     });
                                 }
                             } else {
+                                resolve();
                                 swal({
                                     title: "Mesaj içeriğini boş bıraktınız.",
                                     text: "Lütfen sms göndermek için birşeyler yazın.",
                                     type: 'error',
                                 });
+                                if (bulkBtn) bulkBtn.disabled = false;
                             }
                             document.getElementById('bulkSMSbtn').disabled = false;
                         })
                     }
-                })
+                }).then(function() {
+                    if (bulkBtn) bulkBtn.disabled = false;
+                });
             } else {
+                if (bulkBtn) bulkBtn.disabled = false;
                 swal('Mesaj göndermek için müşteri seçmelisiniz.');
                 return;
             }
@@ -460,7 +681,7 @@ function netgsm_ajaxRequest()
                                 };
                                 jQuery.post(ajaxurl, data, function(response) {
                                     var obje = JSON.parse(response);
-
+                                    resolve();
                                     if (obje.durum == 1) {
                                         swal({
                                             title: "BAŞARILI!",
@@ -476,13 +697,13 @@ function netgsm_ajaxRequest()
                                     }
                                 });
                             } else {
+                                resolve();
                                 swal({
                                     title: "Mesaj içeriğini boş bıraktınız.",
                                     text: "Lütfen sms göndermek için birşeyler yazın.",
                                     type: 'error',
                                 });
                             }
-                            document.getElementById('bulkSMSbtn').disabled = false;
                         })
                     }
                 })
@@ -2027,23 +2248,27 @@ function netgsm_ajaxRequest()
                             $order           = new WC_Order($order_id);
                             $orderPrice = $order->get_total();
                             $userinfo        = get_userdata($order->customer_id);
-                            $trackingCode = '';
-                            $trackingCompany = '';
-                            $tracking_items = $order->get_meta('_wc_shipment_tracking_items');
-                            if (!empty($tracking_items) && is_array($tracking_items)) {
-                                foreach ($tracking_items as $item) {
-                                    $trackingCompany =  $item['tracking_provider'];
-                                    $trackingCode = $item['tracking_number'];
-                                }
-                            } 
-                            foreach ($order->meta_data as $meta_datum) {
-                                if ($meta_datum->key == 'kargo_takip_no') {
-                                    $trackingCode = $meta_datum->value;
-                                }
-                                if ($meta_datum->key == 'kargo_firmasi') {
-                                    $trackingCompany = $meta_datum->value;
-                                }
-                            }
+//                            $trackingCode = '';
+//                            $trackingCompany = '';
+//                            $tracking_items = $order->get_meta('_wc_shipment_tracking_items');
+//                            if (!empty($tracking_items) && is_array($tracking_items)) {
+//                                foreach ($tracking_items as $item) {
+//                                    $trackingCompany =  $item['tracking_provider'];
+//                                    $trackingCode = $item['tracking_number'];
+//                                }
+//                            } 
+//                            foreach ($order->meta_data as $meta_datum) {
+//                                if ($meta_datum->key == 'kargo_takip_no') {
+//                                    $trackingCode = $meta_datum->value;
+//                                }
+//                                if ($meta_datum->key == 'kargo_firmasi') {
+//                                    $trackingCompany = $meta_datum->value;
+//                                }
+//                            }
+                            $trackingCompany = $order->get_meta('tracking_company');
+                            $trackingCode    = $order->get_meta('tracking_code');
+                            $trackingCompany = !empty($trackingCompany) ? $trackingCompany : '';
+                            $trackingCode    = !empty($trackingCode) ? $trackingCode : '';
                             if ((isset($userinfo->user_login) && $userinfo->user_login != '')) {
                                 $user_login = $userinfo->user_login;
                             } else if(!empty($order->shipping_first_name)) {
@@ -2403,33 +2628,158 @@ function netgsm_ajaxRequest()
             function netgsm_connection_button()
             {
                 if (sanitize_text_field(get_option('netgsm_tf2_cash_on_delivery_control')) == '1') {
+                    // Block checkout tespiti: checkout sayfasındaki blok türüne bak
+                    $checkout_page_id   = wc_get_page_id('checkout');
+                    $checkout_post      = get_post($checkout_page_id);
+                    $is_block_checkout  = $checkout_post && has_block('woocommerce/checkout', $checkout_post);
+                    if ($is_block_checkout) {
+                        // Block checkout için #cod-otp-area ve sendtf2CodeCod burada render edilir
+                        ?>
+                        <div id="cod-otp-area" style="display:none; margin-top:15px;">
+                            <p>
+                                <input type="button" class="input-text button wc-block-components-button" value="OTP Gönder" style="width:100%;" onclick="sendtf2CodeCod()"/>
+                            </p>
+                            <p>
+                                <input type="text" name="cod_otp" id="cod_otp" placeholder="OTP Kodunu Giriniz" class="input-text" style="width:100%;"/>
+                            </p>
+                        </div>
+                        <script>
+                        if (typeof sendtf2CodeCod === 'undefined') {
+                            function sendtf2CodeCod() {
+                                var firstname = jQuery('#billing_first_name, #billing-first_name').first().val() || '';
+                                var lastname  = jQuery('#billing_last_name, #billing-last_name').first().val()   || '';
+                                var phone     = jQuery('#billing_phone, #billing-phone').first().val()           || '';
+                                var email     = jQuery("input[name*='billing_email'], #billing-email").first().val() || '';
+
+                                var error = '';
+                                if (!firstname) error += '> İsim girilmedi.\n';
+                                if (!lastname)  error += '> Soyisim girilmedi.\n';
+                                if (!email)     error += '> E-mail adresi girilmedi.\n';
+                                if (!phone)     error += '> Telefon numarası girilmedi.\n';
+                                <?php if (sanitize_text_field(get_option('netgsm_tf2_cash_on_delivery_control')) == '1'): ?>
+                                if (phone && phone.slice(0, 1) !== '0') error += '> Telefon numarası 0 ile başlamalıdır.\n';
+                                <?php endif; ?>
+                                if (error) { alert('Aşağıdaki hatalar alındı : \n\n' + error); return false; }
+
+                                jQuery.post(<?php echo json_encode(admin_url('admin-ajax.php')); ?>, {
+                                    action: 'netgsm_sendtf2SMS', type: 'cod',
+                                    phone: phone, first_name: firstname, last_name: lastname, email: email
+                                }, function (response) {
+                                    var endChar = response.substring(response.length - 1);
+                                    if (endChar === '0') response = response.substring(0, response.length - 1);
+                                    var obje = JSON.parse(response);
+                                    if (obje.status === 'success') {
+                                        alert('Lütfen ' + obje.phone + ' numaralı telefonunuza gelen güvenlik kodunu giriniz.');
+                                    } else {
+                                        alert(obje.data || 'Bilinmeyen bir hata oluştu. GSM numarası girdiğinize emin olun.');
+                                    }
+                                });
+                            }
+                        }
+
+                        // Block checkout: cod_otp input değerini registered field ile senkronize et
+                        jQuery(document).on('input', '#cod_otp', function () {
+                            var val = jQuery(this).val();
+                            jQuery('input[id*="cod_otp"][id*="netgsm"], input[name*="netgsm/cod_otp"]').val(val);
+                        });
+                        </script>
+                        <?php
+                    }
                     ?>
                     <script>
-                        jQuery(function ($) {
+                    jQuery(function ($) {
+                        var isBlockCheckout = !!document.querySelector('.wp-block-woocommerce-checkout, [data-block-name="woocommerce/checkout"]');
 
-                            function toggleOtpArea() {
-                                let method = $('input[name="payment_method"]:checked').val();
-                                if (method === 'cod') {
-                                    $('#cod-otp-area').slideDown();
-                                } else {
-                                    $('#cod-otp-area').slideUp();
-                                }
+                        function getActivePaymentMethod() {
+                            // 1. Classic Checkout
+                            var classic = document.querySelector('input[name="payment_method"]:checked');
+                            if (classic) return classic.value;
+
+                            // 2. Block Checkout: wp.data store (en güvenilir yöntem)
+                            if (typeof wp !== 'undefined' && wp.data) {
+                                try {
+                                    var store = wp.data.select('wc/store/payment');
+                                    if (store && store.getActivePaymentMethod) return store.getActivePaymentMethod();
+                                } catch (e) {}
                             }
 
-                            // 1️⃣ WooCommerce checkout render edildiğinde
-                            $(document.body).on('updated_checkout', function () {
-                                toggleOtpArea();
+                            // 3. Block Checkout: DOM fallback
+                            var blockRadio = document.querySelector(
+                                '.wc-block-components-radio-control__option input[type="radio"]:checked,' +
+                                '.wc-block-components-payment-method-options input[type="radio"]:checked'
+                            );
+                            if (blockRadio) return blockRadio.value;
+
+                            return null;
+                        }
+
+                        function positionOtpAreaForBlocks() {
+                            var area = document.getElementById('cod-otp-area');
+                            if (!area) return;
+                            var placeOrder = document.querySelector(
+                                '.wc-block-components-checkout-place-order-button,' +
+                                '.wp-block-woocommerce-checkout-actions-block,' +
+                                '.wc-block-checkout__actions_row'
+                            );
+                            if (placeOrder && placeOrder.parentNode && !placeOrder.parentNode.contains(area)) {
+                                placeOrder.parentNode.insertBefore(area, placeOrder);
+                            }
+                            injectBlockOtpButton();
+                        }
+
+                        function injectBlockOtpButton() {
+                            // Registered netgsm/cod_otp field'ının yanına "OTP Gönder" butonu ekle
+                            var otpInput = document.querySelector('input[id*="cod_otp"][id*="netgsm"], input[name="netgsm/cod_otp"]');
+                            if (!otpInput || otpInput.getAttribute('data-netgsm-btn')) return;
+                            otpInput.setAttribute('data-netgsm-btn', '1');
+                            var wrapper = otpInput.closest('.wc-block-components-text-input, .wc-block-additional-field, p');
+                            if (wrapper && wrapper.parentNode) {
+                                var btn = document.createElement('p');
+                                btn.style.marginBottom = '10px';
+                                btn.innerHTML = '<input type="button" class="input-text button" value="OTP Gönder" style="width:100%;" onclick="sendtf2CodeCod()"/>';
+                                wrapper.parentNode.insertBefore(btn, wrapper);
+                            }
+                        }
+
+                        function toggleOtpArea() {
+                            var method = getActivePaymentMethod();
+                            var area   = document.getElementById('cod-otp-area');
+                            if (!area) return;
+
+                            if (method === 'cod') {
+                                if (isBlockCheckout) positionOtpAreaForBlocks();
+                                $(area).slideDown();
+                            } else {
+                                $(area).slideUp();
+                                var inp = document.getElementById('cod_otp');
+                                if (inp) inp.value = '';
+                            }
+                        }
+
+                        // Classic Checkout events
+                        $(document.body).on('updated_checkout', toggleOtpArea);
+                        $(document).on('change', 'input[name="payment_method"]', toggleOtpArea);
+
+                        // Block Checkout: wp.data store subscription
+                        if (typeof wp !== 'undefined' && wp.data) {
+                            try { wp.data.subscribe(function () { toggleOtpArea(); }); } catch (e) {}
+                        }
+
+                        // Block Checkout: DOM radio change fallback
+                        $(document).on('change', '.wc-block-components-radio-control__option input[type="radio"]', toggleOtpArea);
+
+                        // MutationObserver: custom classic checkout temaları için
+                        if (!isBlockCheckout) {
+                            var paymentEl = document.querySelector('#payment') || document.body;
+                            new MutationObserver(function () { toggleOtpArea(); }).observe(paymentEl, {
+                                childList: true, subtree: true, attributes: true,
+                                attributeFilter: ['checked', 'class']
                             });
+                        }
 
-                            // 2️⃣ Ödeme yöntemi manuel değişirse
-                            $(document).on('change', 'input[name="payment_method"]', function () {
-                                toggleOtpArea();
-                            });
-
-                            // 3️⃣ Fallback (çok nadir durumlar için)
-                            setTimeout(toggleOtpArea, 500);
-
-                        });
+                        // Fallback timeout'ları (yavaş tema/AJAX içerikleri için)
+                        [500, 1500, 3000].forEach(function (ms) { setTimeout(toggleOtpArea, ms); });
+                    });
                     </script>
                     <?php
                 }
@@ -2706,10 +3056,11 @@ function netgsm_ajaxRequest()
                 </div>
                 <script>
                     function sendtf2CodeCod() {
-                        var firstname = jQuery('#billing_first_name').val();
-                        var lastname = jQuery('#billing_last_name').val();
-                        var phone = jQuery('#billing_phone').val();
-                        var email = jQuery("input[name*='billing_email']").val();
+                        // Classic checkout (underscore) ve Block checkout (hyphen) alan seçicileri
+                        var firstname = jQuery('#billing_first_name, #billing-first_name').first().val() || '';
+                        var lastname  = jQuery('#billing_last_name, #billing-last_name').first().val()   || '';
+                        var phone     = jQuery('#billing_phone, #billing-phone').first().val()           || '';
+                        var email     = jQuery("input[name*='billing_email'], #billing-email").first().val() || '';
             
                         var error = '';
                         if (firstname == '') {
@@ -2780,20 +3131,66 @@ function netgsm_ajaxRequest()
                 <?php
             });
             add_action('woocommerce_checkout_process', function () {
-            
+
                 if (isset($_POST['payment_method']) && $_POST['payment_method'] === 'cod') {
-            
+
                     $netgsm_status = esc_html(get_option("netgsm_status"));
                     $netgsm_otp_cod = esc_html(get_option("netgsm_tf2_cash_on_delivery_control"));
                     if (isset($netgsm_status) && !empty($netgsm_status) && $netgsm_status == 1 &&
                         isset($netgsm_otp_cod) && !empty($netgsm_otp_cod) && $netgsm_otp_cod == 1) {
-            
+
                         $verified_code = get_post_meta(1, $_POST['billing_phone'] . '_2fa', true) ?? '';
                         $code = $_POST['cod_otp'];
                         if ($code != $verified_code) {
                             wc_add_notice('Doğrulama kodunu yanlış girdiniz!', 'error');
                         }
                     }
+                }
+            });
+
+            // Block Checkout - COD OTP alan kaydı
+            add_action('woocommerce_blocks_loaded', function () {
+                if (!function_exists('woocommerce_register_additional_checkout_field')) return;
+                $netgsm_status  = get_option('netgsm_status');
+                $netgsm_otp_cod = get_option('netgsm_tf2_cash_on_delivery_control');
+                if ($netgsm_status != 1 || $netgsm_otp_cod != 1) return;
+                woocommerce_register_additional_checkout_field([
+                    'id'       => 'netgsm/cod_otp',
+                    'label'    => 'Kapıda Ödeme OTP Kodu',
+                    'location' => 'order',
+                    'type'     => 'text',
+                    'required' => false,
+                ]);
+            });
+
+            // Block Checkout - COD OTP sunucu taraflı doğrulama
+            add_action('woocommerce_store_api_checkout_update_order_from_request', function ($order, $request) {
+                $netgsm_status  = get_option('netgsm_status');
+                $netgsm_otp_cod = get_option('netgsm_tf2_cash_on_delivery_control');
+                if ($netgsm_status != 1 || $netgsm_otp_cod != 1) return;
+                if ($order->get_payment_method() !== 'cod') return;
+
+                $additional_fields = $request->get_param('additional_fields') ?? [];
+                $cod_otp           = trim($additional_fields['netgsm/cod_otp'] ?? '');
+                $billing           = $request->get_param('billing_address') ?? [];
+                $billing_phone     = trim($billing['phone'] ?? $order->get_billing_phone());
+                $verified_code     = get_post_meta(1, $billing_phone . '_2fa', true) ?? '';
+
+                if (empty($cod_otp) || $cod_otp !== $verified_code) {
+                    throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+                        'netgsm_cod_otp_invalid',
+                        'Kapıda ödeme doğrulama kodunu yanlış girdiniz!',
+                        400
+                    );
+                }
+            }, 8, 2);
+            add_action('woocommerce_admin_order_data_after_billing_address', function ($order) {
+                $iys_checkout_control = esc_html(get_option('netgsm_iys_checkout_control'));
+                if ($iys_checkout_control == 1) {
+                    $iys_value = get_post_meta($order->get_id(), '_netgsm_iys_checkout', true);
+                    $status_text = ($iys_value == '1') ? 'Evet' : 'Hayır';
+                    $status_color = ($iys_value == '1') ? '#28a745' : '#dc3545';
+                    echo '<p><strong>Netgsm SMS İzni:</strong> <span style="color: ' . $status_color . ';">' . esc_html($status_text) . '</span></p>';
                 }
             });
 /*

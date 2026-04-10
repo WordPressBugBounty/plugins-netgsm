@@ -110,6 +110,37 @@ if (!current_user_can('administrator')) {
                 </div>
             </div>
         </div>
+        <br>
+        <!--  Üye olmadan yapılan satın alımlarda kampanya SMSleri için izin al özelliği -->
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="col-sm-7">
+                    <label class="control-label" for="">
+                        <i class="fa fa-certificate" style="color: #2ECC71;"></i> Üye olmadan yapılan satın alımlarda kampanya, tanıtım, kutlama vb. içerikli SMS gönderimi için izin alanı oluştur</label>
+                </div>
+                <div class="col-sm-5">
+                    <label class="switch">
+                        <input name="netgsm_iys_checkout_control" id="netgsm_switch16" type="checkbox" onchange="netgsm_field_onoff(16)" value="1" <?php if (esc_attr(get_option('netgsm_iys_checkout_control')) == 1) { ?>checked <?php } ?>>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-sm-9" id="netgsm_field16" style="<?php if (esc_attr(get_option('netgsm_iys_checkout_control')) != 1) { ?>display:none; <?php } ?>">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <i class="fa fa-check-square" style="color: #17A2B8;"></i>
+
+                            </div>
+                            <textarea name="netgsm_iys_checkout_text" id="netgsm_textarea16" class="form-control" placeholder="Kampanya, tanıtım, kutlama vb. içerik onay metni"><?= esc_textarea(get_option("netgsm_iys_checkout_text")) ?></textarea>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="form-group">
         <div class="col-sm-2"></div>
@@ -123,6 +154,8 @@ if (!current_user_can('administrator')) {
         <br>
         <i class="fa fa-certificate" style="color: #BB77AE;"></i> Aktif olduğunda, hesap
         oluşturma sayfasına Ad,Soyad, Telefon numarası ve kampanya, tanıtım, kutlama vb. içerikli SMS gönderim izni alanları ekler.
+        <br>
+        <i class="fa fa-certificate" style="color: #2ECC71;"></i> Aktif olduğunda, ödeme sayfasına kampanya, tanıtım, kutlama vb. içerikli SMS gönderim izni alanı ekler. Üye olmadan yapılan satın alımlarda izin bilgisi sipariş detaylarına kaydedilir.
         <br>
         <hr>
         <p>

@@ -4,7 +4,7 @@ Donate link: https://www.netgsm.com.tr/
 Tags: sms türkiye, toplu sms, woocommerce sms, netgsm wordpress, sms eklentisi
 Requires at least: 3.0
 Tested up to: 6.8
-Stable tag: 2.9.69
+Stable tag: 2.9.70
 Requires PHP: 7.4.33
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -95,6 +95,13 @@ WordPress yönetim paneli üzerinden;
 </ol>
 
 == Changelog ==
+= 2.9.70 =
+* IYS ödeme sayfası onay kutusu eklendi: classic ve block checkout için sunucu taraflı alan doğrulaması
+* IYS onay kutusunda seçili iletişim kanalına göre telefon/e-posta alanı zorunlu hale getirildi (frontend required + label güncelleme)
+* Kapıda ödeme OTP SMS özelliği block checkout desteğiyle genişletildi (wp.data store, MutationObserver, çoklu fallback)
+* Özel SMS ve Toplu SMS'te mesaj içerik türü seçiminin giriş sekmesi ayarı tarafından ezilmesi düzeltildi
+* Toplu SMS buton kilitleme ve swal promise resolve hataları düzeltildi
+* Kargo takip bilgisi meta anahtar güncellendi
 = 2.9.69 =
 * Sürüm revizasyonu
 = 2.9.68 =
@@ -156,6 +163,13 @@ WordPress yönetim paneli üzerinden;
 * Hata düzeltmeleri
 =======
 == Changelog ==
+= 2.9.70 =
+* IYS ödeme sayfası onay kutusu eklendi: classic ve block checkout için sunucu taraflı alan doğrulaması
+* IYS onay kutusunda seçili iletişim kanalına göre telefon/e-posta alanı zorunlu hale getirildi (frontend required + label güncelleme)
+* Kapıda ödeme OTP SMS özelliği block checkout desteğiyle genişletildi (wp.data store, MutationObserver, çoklu fallback)
+* Özel SMS ve Toplu SMS'te mesaj içerik türü seçiminin giriş sekmesi ayarı tarafından ezilmesi düzeltildi
+* Toplu SMS buton kilitleme ve swal promise resolve hataları düzeltildi
+* Kargo takip bilgisi meta anahtar güncellendi
 = 2.9.69 =
 * Sürüm revizasyonu
 = 2.9.68 =
@@ -218,6 +232,13 @@ WordPress yönetim paneli üzerinden;
 = 2.9.32 =
 * Hata düzeltmesi yapıldı.
 == Changelog ==
+= 2.9.70 =
+* IYS ödeme sayfası onay kutusu eklendi: classic ve block checkout için sunucu taraflı alan doğrulaması
+* IYS onay kutusunda seçili iletişim kanalına göre telefon/e-posta alanı zorunlu hale getirildi (frontend required + label güncelleme)
+* Kapıda ödeme OTP SMS özelliği block checkout desteğiyle genişletildi (wp.data store, MutationObserver, çoklu fallback)
+* Özel SMS ve Toplu SMS'te mesaj içerik türü seçiminin giriş sekmesi ayarı tarafından ezilmesi düzeltildi
+* Toplu SMS buton kilitleme ve swal promise resolve hataları düzeltildi
+* Kargo takip bilgisi meta anahtar güncellendi
 = 2.9.69 =
 * Sürüm revizasyonu
 = 2.9.68 =
