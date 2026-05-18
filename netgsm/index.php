@@ -5,7 +5,7 @@ Plugin URI: https://wordpress.org/plugins/netgsm/
 Description: Netgsm hesabınız ile Woocommerce müşterileriniz yeni sipariş verdiğinde, yeni kayıt olan müşterileriniz olduğunda ve toplu smslerde kişiye özel ve yöneticilere sms gönderebileceğiniz bir eklentidir. Bunun yanısıra kişiye özel toplu ve özel sms gönderebilir, Gelen kutunuzdaki smsleri anında cevaplaya bilirsiniz. Yeni kayıt olan müşterileriniz netgsm rehberine ekleyebilir, siparişlerin durumları değiştiğinde kargo takip kodu gibi bilgileri müşterilerinize otomatik olarak gönderebilirsiniz. Ayrıca Contact Form 7 formlarınızda sms gönderimi sağlayabilirsiniz.
 Author: Netgsm
 Author URI: www.netgsm.com.tr
-Version: 2.9.71
+Version: 2.9.72
 
 
 */
@@ -493,10 +493,10 @@ function netgsm_ajaxRequest()
         function privatesmsSend(number = "") {
             var phone = document.getElementById('private_phone').value;
             var message = document.getElementById('private_text').value;
-            var content_type = document.getElementById('netgsm_content_type').selectedIndex;
-            var filter=content_type 
+            var content_type = document.getElementById('netgsm_content_type').value;
+            var filter = content_type;
 
-            if (phone == "" || message == "" || content_type == "0") {
+            if (phone == "" || message == "" || content_type == "") {
                 swal('Mesaj göndermek için lütfen gerekli alanları doldurun.');
                 return;
             }
@@ -569,10 +569,10 @@ function netgsm_ajaxRequest()
                     input: 'textarea',
                     inputPlaceholder: 'Mesaj İçeriğini buraya giriniz.',
                     html: '<select id="swal-input2" name="swal-input2" class="swal2-select" style="border-color: #d9d9d9 " >' +
-                        '<option style="color: #2c3338" value="0" > Mesaj içerik türü seçiniz</option>' +
-                        '<option style="color: #2c3338" value="1"> Kampanya, tanıtım, kutlama vb. (İYS\'ye bireysel kayıtlı alıcılarınıza gönderilir.) </option>' +
-                        '<option style="color: #2c3338" value="2"> Kampanya, tanıtım, kutlama vb. (İYS\'ye tacir kayıtlı alıcılarınıza gönderilir.) </option>' +
-                        '<option style="color: #2c3338" value="3"> Bilgilendirme, kargo, şifre vb. (İYS\'den sorgulanmaz.)</option>' +
+                        '<option style="color: #2c3338" value=""> Mesaj içerik türü seçiniz</option>' +
+                        '<option style="color: #2c3338" value="11"> Kampanya, tanıtım, kutlama vb. (İYS\'ye bireysel kayıtlı alıcılarınıza gönderilir.) </option>' +
+                        '<option style="color: #2c3338" value="12"> Kampanya, tanıtım, kutlama vb. (İYS\'ye tacir kayıtlı alıcılarınıza gönderilir.) </option>' +
+                        '<option style="color: #2c3338" value="0"> Bilgilendirme, kargo, şifre vb. (İYS\'den sorgulanmaz.)</option>' +
                         '</select>' +
                         '<i style="font-size: small; color: #555">*Tanımlı marka kodunuz bulunmuyorsa Bilgilendirme, kargo, şifre vb. (İYS\'den sorgulanmaz.) seçilmelidir.</i>',
                     confirmButtonText: 'Gönder',
@@ -587,9 +587,9 @@ function netgsm_ajaxRequest()
                         return new Promise(function(resolve, reject) {
                             if (text) {
                                 var message = text;
-                                var content_type = document.getElementById('swal-input2').selectedIndex;
+                                var content_type = document.getElementById('swal-input2').value;
                                 var filter = content_type;
-                                if (content_type == '0') {
+                                if (content_type == '') {
                                     resolve();
                                     swal({
                                         title: "Mesaj içerik türü seçilmedi.",

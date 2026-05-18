@@ -1316,10 +1316,10 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                                     <i class="fa fa-envelope" style="color: #17A2B8;"></i>
                                                 </div>
                                                 <select name="netgsm_content_type" id="netgsm_content_type" style="height: 35px; max-width: 100% ; width: 100% ;  font-size: 12px; border-color: #ccc">
-                                                    <option value="0"> Mesaj içerik türü seçiniz</option>
-                                                    <option value="1"> Kampanya, tanıtım, kutlama vb. (İYS'ye bireysel kayıtlı alıcılarınıza gönderilir.) </option>
-                                                    <option value="2"> Kampanya, tanıtım, kutlama vb. (İYS'ye tacir kayıtlı alıcılarınıza gönderilir.) </option>
-                                                    <option value="3"> Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.)</option>
+                                                    <option value=""> Mesaj içerik türü seçiniz</option>
+                                                    <option value="11"> Kampanya, tanıtım, kutlama vb. (İYS'ye bireysel kayıtlı alıcılarınıza gönderilir.) </option>
+                                                    <option value="12"> Kampanya, tanıtım, kutlama vb. (İYS'ye tacir kayıtlı alıcılarınıza gönderilir.) </option>
+                                                    <option value="0"> Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.)</option>
                                                 </select>
                                             </div>
                                             <small>*<i> Hesabınıza tanımlı marka kodunuz bulunmuyorsa Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.) seçilmelidir.</i></small>

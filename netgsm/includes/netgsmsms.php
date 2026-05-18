@@ -82,17 +82,18 @@ class Netgsmsms
 
         $starterFilter = $filter;
 
-        // Kullanıcı Özel SMS veya Toplu SMS'te açıkça içerik türü seçtiyse
-        // giriş sekmesi ayarı devreye girmez, seçim önceliklidir.
-        if ($starterFilter != 0) {
+        // Manuel SMS (Özel SMS / Toplu SMS) tespiti: AJAX üzerinden string olarak gelir.
+        // Otomatik SMS (sipariş bildirimleri vb.) default integer 0 ile çağrılır.
+        // Frontend artık direkt API değerlerini gönderiyor: "11" (bireysel), "12" (tacir), "0" (bilgilendirme)
+        // Boş string ("") gelirse kullanıcı seçim yapmamış; giriş sekmesi ayarları devreye girer.
+        if (is_string($starterFilter) && $starterFilter !== '') {
             switch ($starterFilter) {
-                case 1:
+                case '11':
                     return 11; // Kampanya bireysel
-                case 2:
+                case '12':
                     return 12; // Kampanya tacir
-                case 3:
-                    // Bilgilendirme: marka kodu tanımlıysa 13, değilse 0
-                    return ($netgsm_brandcode_control && $netgsm_brandcode_text != '') ? 13 : 0;
+                case '0':
+                    return 0;  // Bilgilendirme (İYS sorgulanmaz)
             }
         }
 
