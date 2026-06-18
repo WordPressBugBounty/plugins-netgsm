@@ -5,7 +5,7 @@ Plugin URI: https://wordpress.org/plugins/netgsm/
 Description: Netgsm hesabınız ile Woocommerce müşterileriniz yeni sipariş verdiğinde, yeni kayıt olan müşterileriniz olduğunda ve toplu smslerde kişiye özel ve yöneticilere sms gönderebileceğiniz bir eklentidir. Bunun yanısıra kişiye özel toplu ve özel sms gönderebilir, Gelen kutunuzdaki smsleri anında cevaplaya bilirsiniz. Yeni kayıt olan müşterileriniz netgsm rehberine ekleyebilir, siparişlerin durumları değiştiğinde kargo takip kodu gibi bilgileri müşterilerinize otomatik olarak gönderebilirsiniz. Ayrıca Contact Form 7 formlarınızda sms gönderimi sağlayabilirsiniz.
 Author: Netgsm
 Author URI: www.netgsm.com.tr
-Version: 2.9.72
+Version: 2.9.73
 
 
 */
@@ -171,6 +171,9 @@ function netgsm_options()
     //otp duplicate control
     register_setting('netgsmoptions', 'netgsm_tf2_auth_register_phone_control');
     register_setting('netgsmoptions', 'netgsm_tf2_auth_register_phone_warning_text');
+
+    //otp ad/soyad zorunlulugu (1 = ad/soyad isteme, sadece numara ile devam et)
+    register_setting('netgsmoptions', 'netgsm_tf2_name_optional');
 
     //contacts meta
     register_setting('netgsmoptions', 'netgsm_contact_meta_key');
@@ -1477,7 +1480,13 @@ function netgsm_ajaxRequest()
                 $control        = netgsm_newcustomer_control();
                 $otpregister_control = esc_html(get_option("netgsm_tf2_auth_register_control"));
                 if (isset($netgsm_status) && !empty($netgsm_status) && $netgsm_status == 1 && ($control != 0 || $otpregister_control == 1)) {
-                ?><p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+                ?>
+                <?php
+                    // Ayar acikken (sadece telefon iste) ad/soyad alanlari hic gosterilmez
+                    $name_optional = esc_html(get_option('netgsm_tf2_name_optional'));
+                    if ($name_optional != 1) {
+                ?>
+                <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
                 <label for="first_name"><?php esc_html_e('Adınız', 'mydomain') ?><span
                     class="required">*</span><br />
                 <input type="text" name="first_name" id="first_name" class="input-text form-control"
@@ -1489,6 +1498,7 @@ function netgsm_ajaxRequest()
                 <input type="text" name="last_name" id="last_name" class="input-text form-control"
                     value="<?php echo esc_html_e(@$_POST['last_name']) ?>" required /></label>
                 </p>
+                <?php } ?>
                 <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
                 <label for="billing_phone"><?php esc_html_e('Cep Telefonu', 'mydomain') ?><span
                     class="required">*</span><br />
@@ -1554,6 +1564,7 @@ function netgsm_ajaxRequest()
             var email = jQuery("input[name*='email']").val();
 
             var error = '';
+            <?php if (esc_html(get_option('netgsm_tf2_name_optional')) != 1) { ?>
             if (firstname == '') {
                 error += '> İsim girilmedi.\n';
             }
@@ -1563,6 +1574,7 @@ function netgsm_ajaxRequest()
             if (email == '') {
                 error += '> E-mail adresi girilmedi.\n';
             }
+            <?php } ?>
             if (phone == '') {
                 error += '> Telefon numarası girilmedi.\n';
             }
@@ -1657,10 +1669,10 @@ function netgsm_ajaxRequest()
                         array_push($oldVar, '[soyad]');
                         array_push($oldVar, '[mail]');
 
-                        $newVar['telefon_no'] = sanitize_text_field($_POST['phone']);
-                        $newVar['ad'] = sanitize_text_field($_POST['first_name']);
-                        $newVar['soyad'] = sanitize_text_field($_POST['last_name']);
-                        $newVar['mail'] = sanitize_text_field($_POST['email']);
+                        $newVar['telefon_no'] = isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '';
+                        $newVar['ad'] = isset($_POST['first_name']) ? sanitize_text_field($_POST['first_name']) : '';
+                        $newVar['soyad'] = isset($_POST['last_name']) ? sanitize_text_field($_POST['last_name']) : '';
+                        $newVar['mail'] = isset($_POST['email']) ? sanitize_text_field($_POST['email']) : '';
 
                         $phone_warning_text = $replace->netgsm_replace_array($oldVar, $newVar, $phone_warning_text);
                         echo json_encode(['status' => 'error', 'state' => '5', 'data' => $phone_warning_text]);
@@ -1678,9 +1690,9 @@ function netgsm_ajaxRequest()
                             $otpregister_control = esc_html(get_option("netgsm_tf2_auth_register_control"));
                         }
                         if ($otpregister_control == 1) {
-                            $first_name = sanitize_text_field($_POST['first_name']);
-                            $last_name = sanitize_text_field($_POST['last_name']);
-                            $email = sanitize_text_field($_POST['email']);
+                            $first_name = isset($_POST['first_name']) ? sanitize_text_field($_POST['first_name']) : '';
+                            $last_name = isset($_POST['last_name']) ? sanitize_text_field($_POST['last_name']) : '';
+                            $email = isset($_POST['email']) ? sanitize_text_field($_POST['email']) : '';
 
                             $code = get_post_meta(1, $phone . '_2fa', true);
 
@@ -1806,13 +1818,16 @@ function netgsm_ajaxRequest()
                     $delete = false;
                 } else {
                     if (isset($netgsm_status) && !empty($netgsm_status) && $netgsm_status == 1 && $control != 0 && $otpstatus ) {
-                        if (isset($first_name) && empty($first_name) || trim($first_name) == '') {
-                            $validation_error->add('first_name_error', __('<strong></strong>Adınızı giriniz.', 'mydomain'));
-                            $delete = false;
-                        }
-                        if (isset($last_name) && empty($last_name) || trim($last_name) == '') {
-                            $validation_error->add('last_name_error', __('<strong></strong>Soyadınızı giriniz.', 'mydomain'));
-                            $delete = false;
+                        // Ayar acikken (sadece telefon iste) ad/soyad sunucu tarafinda da zorunlu degildir
+                        if (esc_html(get_option('netgsm_tf2_name_optional')) != 1) {
+                            if (isset($first_name) && empty($first_name) || trim($first_name) == '') {
+                                $validation_error->add('first_name_error', __('<strong></strong>Adınızı giriniz.', 'mydomain'));
+                                $delete = false;
+                            }
+                            if (isset($last_name) && empty($last_name) || trim($last_name) == '') {
+                                $validation_error->add('last_name_error', __('<strong></strong>Soyadınızı giriniz.', 'mydomain'));
+                                $delete = false;
+                            }
                         }
                         if (isset($billing_phone) && empty($billing_phone) || trim($billing_phone) == '') {
                             $validation_error->add('billing_phone_error', __('<strong></strong>Telefon numaranızı giriniz.', 'mydomain'));
