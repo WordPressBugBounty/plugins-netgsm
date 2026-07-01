@@ -4,7 +4,7 @@ Donate link: https://www.netgsm.com.tr/
 Tags: sms türkiye, toplu sms, woocommerce sms, netgsm wordpress, sms eklentisi
 Requires at least: 3.0
 Tested up to: 6.8
-Stable tag: 2.9.74
+Stable tag: 2.9.75
 Requires PHP: 7.4.33
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -95,6 +95,8 @@ WordPress yönetim paneli üzerinden;
 </ol>
 
 == Changelog ==
+= 2.9.75 =
+* Çok sayıda üyeye (ör. binlerce müşteri) sahip sitelerde eklenti ayarlar sayfası açılırken bellek yetersizliği nedeniyle oluşan "kritik hata"/beyaz ekran sorunu giderildi. Kullanıcı listeleri (Toplu SMS sekmesi) artık AJAX ile sayfa sayfa yüklenir; Gelen Kutusu, Netsantral raporu ve sepeti terk SMS gönderimlerindeki kullanıcı sorguları da tüm kullanıcıları belleğe almayacak şekilde optimize edildi.
 = 2.9.74 =
 * Bazı sitelerde yönetim panelinde "Cannot redeclare" hatasına yol açan paketleme sorunu giderildi. 2.9.73 sonrası beyaz ekran/fatal error yaşayan kullanıcılar için kritik düzeltme.
 = 2.9.73 =
@@ -171,6 +173,8 @@ WordPress yönetim paneli üzerinden;
 * Hata düzeltmeleri
 =======
 == Changelog ==
+= 2.9.75 =
+* Çok sayıda üyeye (ör. binlerce müşteri) sahip sitelerde eklenti ayarlar sayfası açılırken bellek yetersizliği nedeniyle oluşan "kritik hata"/beyaz ekran sorunu giderildi. Kullanıcı listeleri (Toplu SMS sekmesi) artık AJAX ile sayfa sayfa yüklenir; Gelen Kutusu, Netsantral raporu ve sepeti terk SMS gönderimlerindeki kullanıcı sorguları da tüm kullanıcıları belleğe almayacak şekilde optimize edildi.
 = 2.9.74 =
 * Bazı sitelerde yönetim panelinde "Cannot redeclare" hatasına yol açan paketleme sorunu giderildi. 2.9.73 sonrası beyaz ekran/fatal error yaşayan kullanıcılar için kritik düzeltme.
 = 2.9.73 =
@@ -248,6 +252,8 @@ WordPress yönetim paneli üzerinden;
 = 2.9.32 =
 * Hata düzeltmesi yapıldı.
 == Changelog ==
+= 2.9.75 =
+* Çok sayıda üyeye (ör. binlerce müşteri) sahip sitelerde eklenti ayarlar sayfası açılırken bellek yetersizliği nedeniyle oluşan "kritik hata"/beyaz ekran sorunu giderildi. Kullanıcı listeleri (Toplu SMS sekmesi) artık AJAX ile sayfa sayfa yüklenir; Gelen Kutusu, Netsantral raporu ve sepeti terk SMS gönderimlerindeki kullanıcı sorguları da tüm kullanıcıları belleğe almayacak şekilde optimize edildi.
 = 2.9.74 =
 * Bazı sitelerde yönetim panelinde "Cannot redeclare" hatasına yol açan paketleme sorunu giderildi. 2.9.73 sonrası beyaz ekran/fatal error yaşayan kullanıcılar için kritik düzeltme.
 = 2.9.73 =

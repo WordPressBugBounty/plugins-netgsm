@@ -27,11 +27,37 @@ if (get_option('netgsm_auth_users') != '') {
 $netgsm_auth_roles_control = get_option('netgsm_auth_roles_control');
 $netgsm_auth_users_control = get_option('netgsm_auth_users_control');
 
+// Büyük üye sayısına sahip sitelerde tüm kullanıcıların (ve tüm usermeta'larının)
+// tek seferde belleğe alınması PHP bellek limitini aşıp ayarlar sayfasında
+// "kritik hata" (beyaz ekran) oluşturuyordu. Bu değişken artık yalnızca "Ayarlar"
+// sekmesindeki yetkilendirme listeleri için kullanılıyor (Toplu SMS ve Gelen kutusu
+// AJAX ile parça parça yüklenir). Bu nedenle tüm kullanıcılar yerine yalnızca
+// yetkilendirmeyle ilgili rollere sahip kullanıcılar getirilir; ayrıca güvenlik
+// amacıyla filtre ile ayarlanabilen bir üst sınır uygulanır.
+$netgsm_users_limit = (int) apply_filters('netgsm_users_query_limit', 2000);
+if ($netgsm_users_limit <= 0) {
+    $netgsm_users_limit = 2000;
+}
+$netgsm_role_slugs = array_values(array_unique(array_merge(['administrator'], (array) $auth_roles)));
 $users = get_users([
-    'number' => -1, // Tüm kullanıcıları getir
-    'orderby' => 'ID',
-    'order'   => 'ASC',
+    'role__in' => $netgsm_role_slugs,
+    'number'   => $netgsm_users_limit,
+    'orderby'  => 'ID',
+    'order'    => 'ASC',
 ]);
+// Rolü yukarıdakilerden biri olmayan ama açıkça yetkilendirilmiş kullanıcılar da eklenir
+// (netgsm_findUser'ın onları bulabilmesi için).
+if (!empty($auth_users)) {
+    $netgsm_existing_ids = wp_list_pluck($users, 'ID');
+    $netgsm_missing_ids  = array_diff(array_map('intval', $auth_users), array_map('intval', $netgsm_existing_ids));
+    if (!empty($netgsm_missing_ids)) {
+        $users = array_merge($users, get_users([
+            'include' => $netgsm_missing_ids,
+            'orderby' => 'ID',
+            'order'   => 'ASC',
+        ]));
+    }
+}
 
 //yetkilendirme ile ilgili geliştirmeler 16.07.2021
 $cntrl = false;
@@ -1419,57 +1445,64 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <table data-pagination="true" id="table" name="table" class="table table-bordered table-striped dataTable no-footer" data-search="true" data-search-align="left" data-pagination-v-align="bottom" data-click-to-select="true" data-toggle="table" data-page-list="[10, 25, 50, 100, 150, 200]">
-                                            <a href="javascript:void(0)" class="btn btn-success" style="float: right;" onclick="netgsm_sendSMS_bulkTab('')"><i class="fa fa-paper-plane"></i> SMS Gönder</a>
+                                        <a href="javascript:void(0)" class="btn btn-success" style="float: right; margin-bottom: 8px;" onclick="netgsm_sendSMS_bulkTab('')"><i class="fa fa-paper-plane"></i> SMS Gönder</a>
+                                        <?php
+                                        // Kullanıcı listesi, tüm kullanıcıları belleğe/HTML'e basmak yerine
+                                        // sunucu taraflı sayfalama (AJAX) ile parça parça yüklenir.
+                                        // Bkz: wp_ajax_netgsm_users_datatable (index.php)
+                                        ?>
+                                        <table
+                                            id="table" name="table"
+                                            class="table table-bordered table-striped dataTable no-footer"
+                                            data-toggle="table"
+                                            data-pagination="true"
+                                            data-side-pagination="server"
+                                            data-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>"
+                                            data-method="post"
+                                            data-query-params="netgsmUsersQueryParams"
+                                            data-unique-id="userid"
+                                            data-maintain-meta-data="true"
+                                            data-search="true" data-search-align="left"
+                                            data-pagination-v-align="bottom"
+                                            data-click-to-select="true"
+                                            data-page-size="25"
+                                            data-page-list="[10, 25, 50, 100, 150, 200]">
                                             <thead>
                                                 <tr>
                                                     <th data-checkbox="true"></th>
-                                                    <th data-visible="false">userid</th>
-                                                    <th>Kullanıcı adı</th>
-                                                    <th>İsim</th>
-                                                    <th><span>E-posta</span></th>
-                                                    <th scope="col" id="phone" class="manage-column column-phone">
-                                                        Telefon
-                                                    </th>
+                                                    <th data-field="userid" data-visible="false">userid</th>
+                                                    <th data-field="username" data-formatter="netgsmUserUsername">Kullanıcı adı</th>
+                                                    <th data-field="name">İsim</th>
+                                                    <th data-field="email" data-formatter="netgsmUserEmail">E-posta</th>
+                                                    <th data-field="phone" data-formatter="netgsmUserPhone" class="manage-column column-phone">Telefon</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="the-list" data-wp-lists="list:user">
-                                                <?php
-                                                $key2 = 0;
-                                                foreach ($users as $key => $user) {
-                                                    $billing_phone = get_user_meta($user->ID, $netgsm_contact_meta_key, true);
-                                                    if (isset($billing_phone) && !empty($billing_phone)) {
-
-                                                        $key2++;
-                                                ?>
-                                                        <tr id="user-<?= esc_attr($user->ID) ?>">
-                                                            <td></td>
-                                                            <td><?= esc_html($user->ID) ?></td>
-                                                            <td class="username column-username has-row-actions column-primary" data-colname="Kullanıcı adı">
-                                                                <img alt="" src="https://1.gravatar.com/avatar/af6a28e91103e7157c9451d7b754efd2?s=32&amp;d=mm&amp;r=g" srcset="https://1.gravatar.com/avatar/af6a28e91103e7157c9451d7b754efd2?s=64&amp;d=mm&amp;r=g 2x" class="avatar avatar-32 photo" height="32" width="32">
-                                                                <strong><a href="user-edit.php?user_id=<?= esc_attr($user->ID) ?>" target="_blank"><?= esc_html($user->display_name) ?></a></strong><br>
-                                                            </td>
-                                                            <td class="name column-name" data-colname="İsim"><?php if (!empty($user->first_name)) {
-                                                                                                                    echo esc_html($user->first_name . " " . $user->last_name);
-                                                                                                                } else {
-                                                                                                                    echo '—';
-                                                                                                                } ?></td>
-                                                            <td class="email column-email" data-colname="E-posta"><a href="mailto:<?= esc_attr($user->user_email) ?>"><?= esc_html($user->user_email) ?></a>
-                                                            </td>
-                                                            <td class="role column-phone" data-colname="Phone"><?= esc_html(get_user_meta($user->ID, $netgsm_contact_meta_key, true)) ?>
-                                                                <div class="row-actions">
-                                                                    <span class="view">
-                                                                        <a href="javascript:void(0);" onclick="netgsm_sendSMS_bulkTab(<?= esc_attr($user->ID) ?>)" id="bulkSMSbtn">Sms Gönder</a>
-                                                                    </span>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-
-                                                <?php }
-                                                } ?>
                                         </table>
                                     </div>
                                 </div>
+                                <script>
+                                    // bootstrap-table sunucu taraflı sayfalama parametreleri (limit/offset/search)
+                                    // WordPress admin-ajax'a action + nonce ile gönderilir.
+                                    function netgsmUsersQueryParams(params) {
+                                        params.action = 'netgsm_users_datatable';
+                                        params._wpnonce = '<?php echo esc_attr(wp_create_nonce('netgsm_users_datatable')); ?>';
+                                        return params;
+                                    }
+                                    function netgsmUserUsername(value, row) {
+                                        return '<img alt="" class="avatar avatar-32 photo" width="32" height="32" src="https://1.gravatar.com/avatar/af6a28e91103e7157c9451d7b754efd2?s=32&d=mm&r=g"> ' +
+                                            '<strong><a href="user-edit.php?user_id=' + encodeURIComponent(row.userid) + '" target="_blank">' + (value || '') + '</a></strong>';
+                                    }
+                                    function netgsmUserEmail(value) {
+                                        if (!value) return '';
+                                        return '<a href="mailto:' + value + '">' + value + '</a>';
+                                    }
+                                    function netgsmUserPhone(value, row) {
+                                        return (value || '') +
+                                            '<div class="row-actions"><span class="view">' +
+                                            '<a href="javascript:void(0);" onclick="netgsm_sendSMS_bulkTab(' + row.userid + ')">Sms Gönder</a>' +
+                                            '</span></div>';
+                                    }
+                                </script>
                             </div>
                             <div class="tab-pane container-fluid" id="inbox">
                                 <hr>
@@ -1494,9 +1527,18 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                                 <?php
                                                 $inboxData = ($netgsm->inbox());
                                                 if (isset($inboxData['status']) && !empty($inboxData['status']) && $inboxData['status'] == 200) {
+                                                    // Gelen kutusundaki numaraları tek sorguda kullanıcılara eşle
+                                                    // (tüm kullanıcıları belleğe almadan).
+                                                    $inboxPhones = array();
+                                                    foreach ($inboxData as $__row) {
+                                                        if (is_array($__row) && isset($__row['phone']) && $__row['phone'] !== '') {
+                                                            $inboxPhones[] = $__row['phone'];
+                                                        }
+                                                    }
+                                                    $inboxPhoneMap = $netgsm->phonesToUserMap($inboxPhones);
                                                     foreach ($inboxData as $data) {
                                                         if (isset($data['phone']) && !empty($data['phone'])) {
-                                                            $userinfo = $netgsm->phoneToUser($data['phone'], $users); ?>
+                                                            $userinfo = $inboxPhoneMap[ltrim($data['phone'], '0')] ?? null; ?>
 
                                                             <tr id="user-<?php echo esc_attr($data['phone']); ?>">
 

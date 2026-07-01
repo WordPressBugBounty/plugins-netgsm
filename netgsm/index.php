@@ -5,7 +5,7 @@ Plugin URI: https://wordpress.org/plugins/netgsm/
 Description: Netgsm hesabınız ile Woocommerce müşterileriniz yeni sipariş verdiğinde, yeni kayıt olan müşterileriniz olduğunda ve toplu smslerde kişiye özel ve yöneticilere sms gönderebileceğiniz bir eklentidir. Bunun yanısıra kişiye özel toplu ve özel sms gönderebilir, Gelen kutunuzdaki smsleri anında cevaplaya bilirsiniz. Yeni kayıt olan müşterileriniz netgsm rehberine ekleyebilir, siparişlerin durumları değiştiğinde kargo takip kodu gibi bilgileri müşterilerinize otomatik olarak gönderebilirsiniz. Ayrıca Contact Form 7 formlarınızda sms gönderimi sağlayabilirsiniz.
 Author: Netgsm
 Author URI: www.netgsm.com.tr
-Version: 2.9.74
+Version: 2.9.75
 
 
 */
@@ -556,7 +556,7 @@ function netgsm_ajaxRequest()
                 var table = jQuery('#table');
                 var sonuc = table.bootstrapTable('getAllSelections');
                 for (var i = 0; i < sonuc.length; i++) {
-                    users += sonuc[i][1] + ",";
+                    users += sonuc[i].userid + ",";
                 }
                 numberstext = "numaralarına";
             }
@@ -983,8 +983,10 @@ function netgsm_ajaxRequest()
                       data-page-list="[10, 25, 50, 100, 150, 200]"> <thead><th>#</th><th>Tarih</th><th>Arayan</th><th>Aranan</th><th>Süre</th><th>Yön</th><th>İşlemler</th></thead><tbody>';
 
                 $object = json_decode($json);
-                $users = get_users();
                 if (is_object($object) && isset($object->success)) {
+                    // Tüm kullanıcıları belleğe almak yerine yalnızca rapordaki
+                    // numaraları tek sorguda kullanıcılara eşle.
+                    $phoneMap = $netgsm->phonesToUserMap(wp_list_pluck($object->data, 'caller_number'));
                     foreach ($object->data as $key => $data) {
                         if ($key >= 250) {
                             break;
@@ -993,7 +995,7 @@ function netgsm_ajaxRequest()
                         $table .= '<td><a href="https://www.netgsm.com.tr/webportal/netsantral/cdr/gorusme_detayi/' . $data->call_id . '" target="_blank">' . $data->call_id . '</a></td>';
                         $table .= '<td>' . $data->date . '</td>';
 
-                        $customer = $netgsm->phoneToUser(ltrim($data->caller_number, '0'), $users);
+                        $customer = $phoneMap[ltrim($data->caller_number, '0')] ?? null;
                         //echo json_encode(['status'=>'success', 'message'=>$customer, 'type'=>$type, 'info'=>$info]);
                         //wp_die();
                         $c_id = 0;
@@ -1073,6 +1075,7 @@ function netgsm_ajaxRequest()
                          data-page-list="[10, 25, 50, 100, 150, 200]"><thead><th>#</th><th>Tarih</th><th>Arayan</th><th>Süre</th><th>Yön</th><th>İşlemler</th></thead><tbody>';
                             $object = json_decode($json);
                             if (is_object($object) && isset($object->success)) {
+                                $phoneMap = $netgsm->phonesToUserMap(wp_list_pluck($object->data, 'caller_number'));
                                 foreach ($object->data as $key => $data) {
                                     if ($key >= 250) {
                                         break;
@@ -1081,7 +1084,7 @@ function netgsm_ajaxRequest()
                                     $table .= '<td>#</td>';
                                     $table .= '<td>' . $data->date . '</td>';
 
-                                    $customer = $netgsm->phoneToUser(ltrim($data->caller_number, '0'), $users);
+                                    $customer = $phoneMap[ltrim($data->caller_number, '0')] ?? null;
                                     $c_id = 0;
                                     $c_name = '';
                                     if ($customer != null) {
@@ -1207,9 +1210,15 @@ function netgsm_ajaxRequest()
                 $durationSecond  =  ($durationHours) * 60  * 60;   
              
                
-                $users = get_users();
-                foreach ($users as $user) {
-                    $user_id = $user->ID;
+                // Tüm kullanıcıları taramak yerine yalnızca sepet meta'sına sahip
+                // kullanıcıları getir (meta anahtarı: "{user_id}_last_cart_update").
+                global $wpdb;
+                $cart_user_ids = $wpdb->get_col(
+                    "SELECT DISTINCT user_id FROM {$wpdb->usermeta} WHERE meta_key LIKE '%\\_last\\_cart\\_update'"
+                );
+                foreach ($cart_user_ids as $user_id) {
+                    $user = get_userdata($user_id);
+                    if (!$user) continue;
                     $last_update_key = $user_id . '_last_cart_update';
                     $last_cart_update = get_user_meta($user_id, $last_update_key, true);
                     if (!$last_cart_update) continue;
@@ -1306,6 +1315,80 @@ function netgsm_ajaxRequest()
                 ));
 
                 return  $list;
+            }
+
+            // Toplu SMS sekmesindeki kullanıcı tablosu için sunucu taraflı sayfalama.
+            // bootstrap-table (data-side-pagination="server") limit/offset/search gönderir;
+            // tüm kullanıcıları belleğe almadan sayfa sayfa döner.
+            add_action('wp_ajax_netgsm_users_datatable', 'netgsm_users_datatable');
+            function netgsm_users_datatable()
+            {
+                if ( ! isset($_POST['_wpnonce']) || ! wp_verify_nonce( $_POST['_wpnonce'], 'netgsm_users_datatable' ) ) {
+                    wp_die();
+                }
+                if ( ! current_user_can('edit_pages') ) {
+                    wp_die();
+                }
+
+                $phone_meta = sanitize_text_field(get_option("netgsm_contact_meta_key"));
+                if (empty($phone_meta)) {
+                    $phone_meta = 'billing_phone';
+                }
+
+                $limit  = isset($_POST['limit'])  ? (int) $_POST['limit']  : 25;
+                $offset = isset($_POST['offset']) ? (int) $_POST['offset'] : 0;
+                $search = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
+                if ($limit <= 0)  { $limit = 25; }
+                if ($offset < 0)  { $offset = 0; }
+
+                // Yalnızca telefonu (contact meta) dolu kullanıcılar listelenir.
+                $args = array(
+                    'number'      => $limit,
+                    'offset'      => $offset,
+                    'orderby'     => 'ID',
+                    'order'       => 'ASC',
+                    'count_total' => true,
+                    'fields'      => 'all',
+                    'meta_query'  => array(
+                        array('key' => $phone_meta, 'value' => '', 'compare' => '!='),
+                    ),
+                );
+
+                if ($search !== '') {
+                    if (preg_match('/^\+?[0-9\s]+$/', $search)) {
+                        // Numara araması: telefon meta'sında ara
+                        $args['meta_query'] = array(
+                            'relation' => 'AND',
+                            array('key' => $phone_meta, 'value' => '', 'compare' => '!='),
+                            array('key' => $phone_meta, 'value' => preg_replace('/\s+/', '', $search), 'compare' => 'LIKE'),
+                        );
+                    } else {
+                        // Metin araması: kullanıcı adı / e-posta / görünen ad
+                        $args['search']         = '*' . $search . '*';
+                        $args['search_columns'] = array('user_login', 'user_email', 'display_name', 'user_nicename');
+                    }
+                }
+
+                $query = new WP_User_Query($args);
+                $rows  = array();
+                foreach ($query->get_results() as $user) {
+                    $first = get_user_meta($user->ID, 'first_name', true);
+                    $last  = get_user_meta($user->ID, 'last_name', true);
+                    $name  = trim($first . ' ' . $last);
+                    $rows[] = array(
+                        'userid'   => (int) $user->ID,
+                        'username' => $user->display_name,
+                        'name'     => $name !== '' ? $name : '—',
+                        'email'    => $user->user_email,
+                        'phone'    => get_user_meta($user->ID, $phone_meta, true),
+                    );
+                }
+
+                wp_send_json(array(
+                    'total'            => (int) $query->get_total(),
+                    'totalNotFiltered' => (int) $query->get_total(),
+                    'rows'             => $rows,
+                ));
             }
 
             add_action('wp_ajax_netgsm_sendSMS_bulkTab', 'netgsm_sendSMS_bulkTab');
