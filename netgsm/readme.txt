@@ -4,7 +4,7 @@ Donate link: https://www.netgsm.com.tr/
 Tags: sms türkiye, toplu sms, woocommerce sms, netgsm wordpress, sms eklentisi
 Requires at least: 3.0
 Tested up to: 6.8
-Stable tag: 2.9.75
+Stable tag: 2.10.0
 Requires PHP: 7.4.33
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -95,6 +95,14 @@ WordPress yönetim paneli üzerinden;
 </ol>
 
 == Changelog ==
+= 2.10.0 =
+* Yönetim paneli baştan tasarlandı; Giriş, WooCommerce SMS, Üyelik Doğrulama, Toplu SMS, Özel SMS, Contact Form 7 SMS ve İYS ekranları yenilendi.
+* Gelen SMS, Gelen Çağrılar, Netasistan ve Ayarlar sekmeleri menüden kaldırıldı.
+* Elementor Pro form entegrasyonu eklendi. Form widget'ında "Actions After Submit > Netgsm SMS" seçilerek formdaki telefon alanına veya belirlenen sabit numaralara SMS gönderilebilir.
+* Müşteri girişinde OTP SMS ile iki adımlı doğrulama (2FA) eklendi. Yalnızca "customer" rolü için geçerlidir; SMS gönderilemezse giriş normal şekilde tamamlanır.
+* OTP SMS gönderimi Netgsm REST v2 servisine taşındı.
+* Giriş ekranında hesap doğrulama ve kaydetme işlemleri sayfa yenilenmeden yapılıyor; panelde OTP SMS paketi ve kredi bakiyesi de gösteriliyor.
+* Toplu SMS sekmesindeki kullanıcı listesinin boş görünmesi sorunu giderildi.
 = 2.9.75 =
 * Çok sayıda üyeye (ör. binlerce müşteri) sahip sitelerde eklenti ayarlar sayfası açılırken bellek yetersizliği nedeniyle oluşan "kritik hata"/beyaz ekran sorunu giderildi. Kullanıcı listeleri (Toplu SMS sekmesi) artık AJAX ile sayfa sayfa yüklenir; Gelen Kutusu, Netsantral raporu ve sepeti terk SMS gönderimlerindeki kullanıcı sorguları da tüm kullanıcıları belleğe almayacak şekilde optimize edildi.
 = 2.9.74 =
@@ -173,6 +181,14 @@ WordPress yönetim paneli üzerinden;
 * Hata düzeltmeleri
 =======
 == Changelog ==
+= 2.10.0 =
+* Yönetim paneli baştan tasarlandı; Giriş, WooCommerce SMS, Üyelik Doğrulama, Toplu SMS, Özel SMS, Contact Form 7 SMS ve İYS ekranları yenilendi.
+* Gelen SMS, Gelen Çağrılar, Netasistan ve Ayarlar sekmeleri menüden kaldırıldı.
+* Elementor Pro form entegrasyonu eklendi. Form widget'ında "Actions After Submit > Netgsm SMS" seçilerek formdaki telefon alanına veya belirlenen sabit numaralara SMS gönderilebilir.
+* Müşteri girişinde OTP SMS ile iki adımlı doğrulama (2FA) eklendi. Yalnızca "customer" rolü için geçerlidir; SMS gönderilemezse giriş normal şekilde tamamlanır.
+* OTP SMS gönderimi Netgsm REST v2 servisine taşındı.
+* Giriş ekranında hesap doğrulama ve kaydetme işlemleri sayfa yenilenmeden yapılıyor; panelde OTP SMS paketi ve kredi bakiyesi de gösteriliyor.
+* Toplu SMS sekmesindeki kullanıcı listesinin boş görünmesi sorunu giderildi.
 = 2.9.75 =
 * Çok sayıda üyeye (ör. binlerce müşteri) sahip sitelerde eklenti ayarlar sayfası açılırken bellek yetersizliği nedeniyle oluşan "kritik hata"/beyaz ekran sorunu giderildi. Kullanıcı listeleri (Toplu SMS sekmesi) artık AJAX ile sayfa sayfa yüklenir; Gelen Kutusu, Netsantral raporu ve sepeti terk SMS gönderimlerindeki kullanıcı sorguları da tüm kullanıcıları belleğe almayacak şekilde optimize edildi.
 = 2.9.74 =
@@ -252,6 +268,14 @@ WordPress yönetim paneli üzerinden;
 = 2.9.32 =
 * Hata düzeltmesi yapıldı.
 == Changelog ==
+= 2.10.0 =
+* Yönetim paneli baştan tasarlandı; Giriş, WooCommerce SMS, Üyelik Doğrulama, Toplu SMS, Özel SMS, Contact Form 7 SMS ve İYS ekranları yenilendi.
+* Gelen SMS, Gelen Çağrılar, Netasistan ve Ayarlar sekmeleri menüden kaldırıldı.
+* Elementor Pro form entegrasyonu eklendi. Form widget'ında "Actions After Submit > Netgsm SMS" seçilerek formdaki telefon alanına veya belirlenen sabit numaralara SMS gönderilebilir.
+* Müşteri girişinde OTP SMS ile iki adımlı doğrulama (2FA) eklendi. Yalnızca "customer" rolü için geçerlidir; SMS gönderilemezse giriş normal şekilde tamamlanır.
+* OTP SMS gönderimi Netgsm REST v2 servisine taşındı.
+* Giriş ekranında hesap doğrulama ve kaydetme işlemleri sayfa yenilenmeden yapılıyor; panelde OTP SMS paketi ve kredi bakiyesi de gösteriliyor.
+* Toplu SMS sekmesindeki kullanıcı listesinin boş görünmesi sorunu giderildi.
 = 2.9.75 =
 * Çok sayıda üyeye (ör. binlerce müşteri) sahip sitelerde eklenti ayarlar sayfası açılırken bellek yetersizliği nedeniyle oluşan "kritik hata"/beyaz ekran sorunu giderildi. Kullanıcı listeleri (Toplu SMS sekmesi) artık AJAX ile sayfa sayfa yüklenir; Gelen Kutusu, Netsantral raporu ve sepeti terk SMS gönderimlerindeki kullanıcı sorguları da tüm kullanıcıları belleğe almayacak şekilde optimize edildi.
 = 2.9.74 =

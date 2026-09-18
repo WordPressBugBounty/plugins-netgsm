@@ -1,0 +1,36 @@
+/* Netgsm Vuexy — type scale (derived from the file's Typography component + observed sizes).
+   Body is 15px (the dominant size in the source); headings step 18→38px. */
+:root{
+  --fs-h1:38px; --fs-h2:32px; --fs-h3:26px; --fs-h4:24px; --fs-h5:20px; --fs-h6:18px;
+  --fs-subtitle-1:16px; --fs-subtitle-2:15px;
+  --fs-body-1:15px; --fs-body-2:13px;
+  --fs-caption:12px; --fs-overline:12px; --fs-button:15px;
+  --lh-tight:1.22; /* @kind other */
+  --lh-heading:1.35; /* @kind other */
+  --lh-body:1.5; /* @kind other */
+  --fw-light:300; /* @kind font */
+  --fw-regular:400; /* @kind font */
+  --fw-medium:500; /* @kind font */
+  --fw-semibold:600; /* @kind font */
+  --fw-bold:700; /* @kind font */
+  --fw-extrabold:800; /* @kind font */
+  --ls-tight:-0.02em; /* @kind font */
+  --ls-normal:0; /* @kind font */
+  --ls-overline:0.17em; /* @kind font */
+}
+/* Base */
+body{font-family:var(--font-sans);color:var(--text-primary);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+/* Utility classes — headings use display weight, body uses regular */
+.ds-h1{font-family:var(--font-display);font-size:var(--fs-h1);font-weight:var(--fw-bold);line-height:var(--lh-tight);letter-spacing:var(--ls-tight);color:var(--text-primary)}
+.ds-h2{font-family:var(--font-display);font-size:var(--fs-h2);font-weight:var(--fw-bold);line-height:var(--lh-tight);letter-spacing:var(--ls-tight);color:var(--text-primary)}
+.ds-h3{font-family:var(--font-display);font-size:var(--fs-h3);font-weight:var(--fw-semibold);line-height:var(--lh-heading);color:var(--text-primary)}
+.ds-h4{font-family:var(--font-display);font-size:var(--fs-h4);font-weight:var(--fw-semibold);line-height:var(--lh-heading);color:var(--text-primary)}
+.ds-h5{font-family:var(--font-display);font-size:var(--fs-h5);font-weight:var(--fw-semibold);line-height:var(--lh-heading);color:var(--text-primary)}
+.ds-h6{font-family:var(--font-display);font-size:var(--fs-h6);font-weight:var(--fw-semibold);line-height:var(--lh-heading);color:var(--text-primary)}
+.ds-subtitle-1{font-size:var(--fs-subtitle-1);font-weight:var(--fw-medium);line-height:var(--lh-body);color:var(--text-primary)}
+.ds-subtitle-2{font-size:var(--fs-subtitle-2);font-weight:var(--fw-medium);line-height:var(--lh-body);color:var(--text-primary)}
+.ds-body-1{font-size:var(--fs-body-1);font-weight:var(--fw-regular);line-height:var(--lh-body);color:var(--text-primary)}
+.ds-body-2{font-size:var(--fs-body-2);font-weight:var(--fw-regular);line-height:var(--lh-body);color:var(--text-secondary)}
+.ds-caption{font-size:var(--fs-caption);font-weight:var(--fw-regular);line-height:1.4;color:var(--text-secondary)}
+.ds-overline{font-size:var(--fs-overline);font-weight:var(--fw-medium);line-height:1.4;letter-spacing:var(--ls-overline);text-transform:uppercase;color:var(--text-secondary)}
+.ds-button-text{font-size:var(--fs-button);font-weight:var(--fw-medium);line-height:1;letter-spacing:0.02em}

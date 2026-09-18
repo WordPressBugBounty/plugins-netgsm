@@ -5,7 +5,7 @@ Plugin URI: https://wordpress.org/plugins/netgsm/
 Description: Netgsm hesabınız ile Woocommerce müşterileriniz yeni sipariş verdiğinde, yeni kayıt olan müşterileriniz olduğunda ve toplu smslerde kişiye özel ve yöneticilere sms gönderebileceğiniz bir eklentidir. Bunun yanısıra kişiye özel toplu ve özel sms gönderebilir, Gelen kutunuzdaki smsleri anında cevaplaya bilirsiniz. Yeni kayıt olan müşterileriniz netgsm rehberine ekleyebilir, siparişlerin durumları değiştiğinde kargo takip kodu gibi bilgileri müşterilerinize otomatik olarak gönderebilirsiniz. Ayrıca Contact Form 7 formlarınızda sms gönderimi sağlayabilirsiniz.
 Author: Netgsm
 Author URI: www.netgsm.com.tr
-Version: 2.9.75
+Version: 2.10.0
 
 
 */
@@ -34,6 +34,33 @@ if (!defined('ABSPATH')) exit;
 define('PLUGIN_CLASS_PATH', dirname(__FILE__) . '/includes');
 require_once PLUGIN_CLASS_PATH . '/netgsmsms.php';
 require_once PLUGIN_CLASS_PATH . '/replacefunction.php';
+require_once PLUGIN_CLASS_PATH . '/login-otp.php';
+
+/*
+ * Elementor Pro Form entegrasyonu — sadece Elementor Pro sitede aktifken
+ * yüklenir. elementor_pro/init hook'u yalnızca Elementor Pro etkinken
+ * ateşlendiği için, elementor-forms.php içindeki
+ * "extends \ElementorPro\Modules\Forms\Classes\Action_Base" satırının
+ * PHP tarafından ayrıştırılması da o an garanti güvenli olur — Elementor
+ * Pro olmayan sitelerde bu dosya hiç çağrılmaz, fatal hataya yol açmaz.
+ */
+// Elementor Pro form action kaydi.
+//
+// DIKKAT: Bu hook eklenti dosyasi yuklenirken (en erken anda) kaydedilmeli.
+// Elementor Pro, 'elementor_pro/forms/actions/register' action'ini Forms
+// modulunun constructor'inda (modules/forms/module.php -> new
+// Form_Actions_Registrar) tetikliyor; bu da 'elementor_pro/init' action'indan
+// ONCE gerceklesiyor (bkz. Pro plugin.php -> on_elementor_init). Dolayisiyla
+// hook'u 'elementor_pro/init' icinden kaydedersek cok gec kalir ve action
+// listede hic gorunmez. Sinif dosyasi callback icinde require ediliyor; o an
+// Pro yuklu oldugu icin Action_Base sinifi kesinlikle mevcut olur.
+add_action('elementor_pro/forms/actions/register', 'netgsm_elementor_forms_register');
+function netgsm_elementor_forms_register($form_actions_registrar)
+{
+    require_once PLUGIN_CLASS_PATH . '/elementor-forms.php';
+
+    $form_actions_registrar->register(new Netgsm_Elementor_Form_Action());
+}
 
 @ini_set('log_errors', 'On');
 @ini_set('display_errors', 'Off');
@@ -68,11 +95,17 @@ function netgsm_loadcustomadminstyle($hook)
     }
 
     $plugin_url = plugin_dir_url(__FILE__);
+    $plugin_dir = plugin_dir_path(__FILE__);
     wp_enqueue_style('bootstrap',      $plugin_url . 'lib/css/bootstrap.css');
     wp_enqueue_style('font-awesome',   $plugin_url . '/lib/fonts/css/font-awesome.min.css');
     wp_enqueue_style('style',         $plugin_url . 'lib/css/style.css');
     wp_enqueue_style('sweetalert2',    $plugin_url . 'lib/js/sweetalert2/dist/sweetalert2.css');
     wp_enqueue_style('dataTables',    $plugin_url . 'lib/css/bootstrap-table.min.css');
+
+    // Vuexy redesign — self-hosted, no external CDN calls (matches existing font/icon approach).
+    wp_enqueue_style('tabler-icons', $plugin_url . 'lib/fonts/tabler/tabler-icons.min.css', array(), '3.14.0');
+    wp_enqueue_style('netgsm-vuexy', $plugin_url . 'lib/css/vuexy/styles.css', array(), filemtime($plugin_dir . 'lib/css/vuexy/styles.css'));
+    wp_enqueue_style('netgsm-vuexy-shell', $plugin_url . 'lib/css/vuexy/admin-shell.css', array('netgsm-vuexy'), filemtime($plugin_dir . 'lib/css/vuexy/admin-shell.css'));
 }
 
 add_action('admin_enqueue_scripts', 'netgsm_script');
@@ -175,6 +208,11 @@ function netgsm_options()
     //otp ad/soyad zorunlulugu (1 = ad/soyad isteme, sadece numara ile devam et)
     register_setting('netgsmoptions', 'netgsm_tf2_name_optional');
 
+    //üye girişinde (login) OTP SMS ile 2FA — sadece customer rolü, bkz includes/login-otp.php
+    register_setting('netgsmoptions', 'netgsm_login_otp_control');
+    register_setting('netgsmoptions', 'netgsm_login_otp_text');
+    register_setting('netgsmoptions', 'netgsm_login_otp_diff');
+
     //contacts meta
     register_setting('netgsmoptions', 'netgsm_contact_meta_key');
 
@@ -263,6 +301,61 @@ function netgsm_options()
     }
 }
 
+
+// Giriş ekranı "Hesabımı Doğrula" — sayfa yenilemeden hesap doğrulama (2026-09 redesign).
+// Girilen kullanıcı adı/şifreyi kaydeder ve netgsm_GirisSorgula ile aynı canlı sorguyu
+// yapıp JSON döner; istemci tarafı topbar/bağlantı şeridini bunun üzerinden günceller.
+add_action('wp_ajax_netgsm_verify_account', 'netgsm_ajax_verify_account');
+function netgsm_ajax_verify_account()
+{
+    if (!current_user_can('edit_pages') || !check_ajax_referer('netgsm_verify_account', '_wpnonce', false)) {
+        wp_send_json_error(['mesaj' => 'Yetkiniz yok.'], 403);
+    }
+
+    $user = isset($_POST['netgsm_user']) ? sanitize_text_field(wp_unslash($_POST['netgsm_user'])) : '';
+    $pass = isset($_POST['netgsm_pass']) ? sanitize_text_field(wp_unslash($_POST['netgsm_pass'])) : '';
+    $user = trim($user);
+    $pass = trim($pass);
+
+    update_option('netgsm_user', $user);
+    update_option('netgsm_pass', $pass);
+
+    $netgsm_verify = new Netgsmsms($user, $pass, get_option('netgsm_input_smstitle'));
+    $cevap = json_decode($netgsm_verify->netgsm_GirisSorgula($user, $pass));
+
+    wp_send_json_success($cevap);
+}
+
+// Giriş ekranı "SMS Ayarlarını Kaydet" — sayfa yenilemeden kaydetme (2026-09 redesign).
+add_action('wp_ajax_netgsm_save_sms_settings', 'netgsm_ajax_save_sms_settings');
+function netgsm_ajax_save_sms_settings()
+{
+    if (!current_user_can('edit_pages') || !check_ajax_referer('netgsm_save_sms_settings', '_wpnonce', false)) {
+        wp_send_json_error(['mesaj' => 'Yetkiniz yok.'], 403);
+    }
+
+    $fields = ['netgsm_input_smstitle', 'netgsm_trChar', 'netgsm_iys_control', 'netgsm_status'];
+    foreach ($fields as $field) {
+        $value = isset($_POST[$field]) ? sanitize_text_field(wp_unslash($_POST[$field])) : '';
+        update_option($field, $value);
+    }
+
+    wp_send_json_success(['mesaj' => 'SMS ayarları kaydedildi.']);
+}
+
+// Toplu SMS ekranı "Telefon Meta Anahtarı" — sayfa yenilemeden kaydetme (2026-09 redesign).
+add_action('wp_ajax_netgsm_save_contact_meta_key', 'netgsm_ajax_save_contact_meta_key');
+function netgsm_ajax_save_contact_meta_key()
+{
+    if (!current_user_can('edit_pages') || !check_ajax_referer('netgsm_save_contact_meta_key', '_wpnonce', false)) {
+        wp_send_json_error(['mesaj' => 'Yetkiniz yok.'], 403);
+    }
+
+    $value = isset($_POST['netgsm_contact_meta_key']) ? sanitize_text_field(wp_unslash($_POST['netgsm_contact_meta_key'])) : '';
+    update_option('netgsm_contact_meta_key', trim($value));
+
+    wp_send_json_success(['mesaj' => 'Telefon meta anahtarı kaydedildi.']);
+}
 
 function netgsm_getCustomSetting($key, $search)
 {
@@ -580,8 +673,6 @@ function netgsm_ajaxRequest()
                         '<i style="font-size: small; color: #555">*Tanımlı marka kodunuz bulunmuyorsa Bilgilendirme, kargo, şifre vb. (İYS\'den sorgulanmaz.) seçilmelidir.</i>',
                     confirmButtonText: 'Gönder',
                     cancelButtonText: 'İptal',
-                    confirmButtonColor: '#2ECC71',
-                    cancelButtonColor: '#E74C3C',
                     width: 650,
                     showCancelButton: true,
                     showLoaderOnConfirm: true,
@@ -666,8 +757,6 @@ function netgsm_ajaxRequest()
                     inputPlaceholder: 'Mesaj İçeriğini buraya giriniz.',
                     confirmButtonText: 'Gönder',
                     cancelButtonText: 'İptal',
-                    confirmButtonColor: '#2ECC71',
-                    cancelButtonColor: '#E74C3C',
                     width: 650,
                     showCancelButton: true,
                     showLoaderOnConfirm: true,
@@ -964,7 +1053,9 @@ function netgsm_ajaxRequest()
             }
 
 
-            add_action('wp_ajax_netgsm_getNetsantral_Report', 'netgsm_getNetsantral_Report');
+            // Gelen Çağrılar sekmesi admin panel redesign kapsamında menüden kaldırıldı (2026-09).
+            // AJAX handler'ı kayıttan kaldırıldı, fonksiyon tanımı ileride geri eklenebilmesi için kalıyor.
+            // add_action('wp_ajax_netgsm_getNetsantral_Report', 'netgsm_getNetsantral_Report');
             function netgsm_getNetsantral_Report()
             {
                 if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'netgsm_getNetsantral_Report' ) ) {
@@ -1476,8 +1567,10 @@ function netgsm_ajaxRequest()
                 echo json_encode($json);
                 wp_die();
             }
-            add_action('wp_ajax_nopriv_netgsm_netasistanticket', 'netgsm_netasistanticket');
-            add_action('wp_ajax_netgsm_netasistanticket', 'netgsm_netasistanticket');
+            // Netasistan sekmesi admin panel redesign kapsamında menüden kaldırıldı (2026-09).
+            // AJAX handler'ları kayıttan kaldırıldı, fonksiyon tanımı ileride geri eklenebilmesi için kalıyor.
+            // add_action('wp_ajax_nopriv_netgsm_netasistanticket', 'netgsm_netasistanticket');
+            // add_action('wp_ajax_netgsm_netasistanticket', 'netgsm_netasistanticket');
             function netgsm_netasistanticket()
             {
                 $json = array();
@@ -2882,7 +2975,9 @@ function netgsm_ajaxRequest()
                     </script>
                     <?php
                 }
-                if (get_option('netgsm_asistan') == '1') {
+                // Netasistan widget'ı admin panel redesign kapsamında devre dışı bırakıldı (2026-09).
+                // Zaten aktif etmiş siteler için de front-end'e enjekte edilmeyi durdurur; option/kod silinmedi.
+                if (false && get_option('netgsm_asistan') == '1') {
                     $plugin_url = plugin_dir_url(__FILE__);
                     wp_enqueue_style('style1', $plugin_url . 'lib/css/style.css');
                     wp_enqueue_style('font-awesome', $plugin_url . 'lib/fonts/css/font-awesome.min.css');

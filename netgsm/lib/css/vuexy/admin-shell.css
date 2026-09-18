@@ -1,0 +1,320 @@
+/*
+ * Netgsm Vuexy Admin Shell — layout + recurring patterns for the redesigned
+ * plugin admin panel. Consumes tokens from ./styles.css (fonts, fig-tokens,
+ * brand, typography) which must be enqueued first. Everything here is
+ * namespaced under .vx-* so it never collides with the legacy Bootstrap
+ * markup or the unrelated .ngsm-ui / netgsm-portal-theme.css work.
+ *
+ * Source of truth for every value: "Netgsm SMS Paneli" design handoff
+ * (Desktop\Wordpress Ekran tasarımı geliştirme\README.md).
+ */
+
+.vx-shell, .vx-shell * { box-sizing: border-box; }
+.vx-shell { font-family: var(--font-sans); color: var(--text-primary); }
+
+/* ---------------------------------------------------------------- */
+/* Page + panel                                                      */
+/* ---------------------------------------------------------------- */
+.vx-page { background: #f0f0f1; padding: 8px 16px 24px; }
+.vx-panel { background: var(--surface-card); border-radius: 10px; overflow: hidden; }
+
+/* ---------------------------------------------------------------- */
+/* Top bar                                                           */
+/* ---------------------------------------------------------------- */
+.vx-topbar {
+  position: sticky; top: 0; z-index: 30; background: var(--surface-card);
+  padding: 14px 24px; border-bottom: 1px solid var(--divider);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+.vx-topbar-logo img { height: 30px; display: block; }
+.vx-topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.vx-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px;
+  background: var(--opacity-color-primary-primary-16); color: var(--color-palette-primary-dark, var(--color-palette-primary-main));
+  font-size: 13px; font-weight: 600; white-space: nowrap;
+}
+.vx-badge i { font-size: 15px; }
+
+/* ---------------------------------------------------------------- */
+/* Body row: sidebar + content                                      */
+/* ---------------------------------------------------------------- */
+.vx-body { display: flex; align-items: stretch; }
+.vx-aside { width: 248px; flex-shrink: 0; border-right: 1px solid var(--divider); }
+.vx-aside-inner {
+  position: sticky; top: 64px; max-height: calc(100vh - 64px); overflow-y: auto; padding: 16px 14px;
+}
+.vx-aside-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-disabled); padding: 4px 14px 10px;
+}
+.vx-nav { display: flex; flex-direction: column; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.vx-nav-item { margin: 0; }
+.vx-nav-link {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius-md);
+  font-size: 15px; font-weight: 500; color: var(--text-primary); text-decoration: none;
+  transition: background .15s; cursor: pointer;
+}
+.vx-nav-link:hover { background: var(--surface-body); color: var(--text-primary); text-decoration: none; }
+.vx-nav-link i { font-size: 18px; }
+.vx-nav-item.active .vx-nav-link,
+.vx-nav-item > a.active {
+  background: linear-gradient(72.47deg, var(--color-palette-primary-main) 22%, color-mix(in srgb, var(--color-palette-primary-main) 68%, white) 78%);
+  color: #fff; font-weight: 600;
+}
+.vx-nav-item.active .vx-nav-link:hover { color: #fff; }
+
+.vx-content { flex: 1; min-width: 0; }
+.vx-content-pad { padding: 26px 34px 40px; }
+.vx-screen { max-width: 1120px; }
+
+/* ---------------------------------------------------------------- */
+/* Page header (per-screen, sticky)                                  */
+/* ---------------------------------------------------------------- */
+.vx-page-header {
+  position: sticky; top: 64px; z-index: 20; background: var(--surface-card);
+  padding: 20px 0 18px; margin-bottom: 28px; border-bottom: 1px solid var(--divider);
+  display: flex; align-items: center; gap: 14px; max-width: 1120px;
+}
+.vx-page-header-icon {
+  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+  background: var(--opacity-color-primary-primary-16); color: var(--color-palette-primary-main);
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+}
+.vx-page-header-text { flex: 1; min-width: 0; }
+.vx-page-header-title { font-size: 21px; font-weight: 700; letter-spacing: -.01em; margin: 0; color: var(--text-primary); }
+.vx-page-header-subtitle { font-size: 13px; color: var(--text-secondary); margin: 2px 0 0; }
+
+/* ---------------------------------------------------------------- */
+/* Buttons                                                            */
+/* ---------------------------------------------------------------- */
+.vx-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px;
+  border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer;
+  border: 1px solid transparent; box-shadow: none; font-family: var(--font-sans); line-height: 1;
+}
+.vx-btn i { font-size: 16px; }
+.vx-btn-primary { background: #2F2B3D; border-color: #2F2B3D; color: #fff; }
+.vx-btn-primary:hover { background: #232030; color: #fff; }
+.vx-btn-outline { background: transparent; border-color: var(--theme-input-border); color: var(--color-palette-primary-main); }
+.vx-btn-outline:hover { background: var(--opacity-color-primary-primary-16); }
+.vx-btn-outline-secondary { background: transparent; border-color: var(--theme-input-border); color: var(--text-secondary); }
+.vx-btn-outline-secondary:hover { background: var(--surface-body); }
+.vx-btn-outline-error { background: transparent; border-color: var(--color-palette-error-main); color: var(--color-palette-error-main); }
+.vx-btn-outline-error:hover { background: var(--opacity-color-error-error-16); }
+.vx-btn-ghost { background: transparent; border-color: transparent; color: var(--text-secondary); }
+.vx-btn-ghost:hover { background: var(--surface-body); }
+.vx-btn-sm { height: 32px; padding: 0 12px; font-size: 13px; }
+.vx-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ---------------------------------------------------------------- */
+/* Section box ("secBox") + headers                                   */
+/* ---------------------------------------------------------------- */
+.vx-secbox { background: var(--surface-card); border: 1px solid var(--divider); border-radius: var(--radius-lg); padding: 20px 22px; }
+.vx-secbox + .vx-secbox { margin-top: 16px; }
+.vx-stack { display: flex; flex-direction: column; }
+.vx-stack-16 > .vx-secbox + .vx-secbox { margin-top: 16px; }
+.vx-stack-20 > .vx-secbox + .vx-secbox { margin-top: 20px; }
+
+.vx-sec-header { display: flex; align-items: center; gap: 9px; }
+.vx-sec-header.vx-sec-header-toggle { justify-content: space-between; gap: 16px; }
+.vx-sec-header i.vx-sec-icon { font-size: 19px; color: var(--color-palette-primary-main); }
+.vx-sec-header h3 { font-size: 15px; font-weight: 700; margin: 0; color: var(--text-primary); }
+.vx-sec-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin: 6px 0 0; }
+.vx-sec-rule { border: none; border-top: 1px solid var(--divider); margin: 16px 0 0; }
+.vx-sec-reveal { padding-top: 16px; margin-top: 20px; border-top: 1px solid var(--divider); }
+
+/* Toggle row inside a list (WooCommerce SMS grid, İYS rows, Netasistan channel cards) */
+.vx-toggle-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  padding: 14px 0; border-bottom: 1px solid var(--divider);
+}
+.vx-toggle-row:last-child { border-bottom: none; }
+.vx-toggle-row-left { display: flex; align-items: flex-start; gap: 14px; min-width: 0; }
+.vx-toggle-row-left i { font-size: 20px; color: var(--color-palette-primary-main); flex-shrink: 0; margin-top: 2px; }
+.vx-toggle-row-label { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 0; }
+.vx-toggle-row-desc { font-size: 13px; color: var(--text-secondary); margin: 2px 0 0; }
+
+/* ---------------------------------------------------------------- */
+/* Switch (plain checkbox styled as a Vuexy switch, no framework)     */
+/* ---------------------------------------------------------------- */
+.vx-switch { position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
+.vx-switch input { opacity: 0; width: 0; height: 0; }
+.vx-switch-track {
+  position: absolute; inset: 0; background: var(--theme-input-border); border-radius: 500px;
+  transition: background .15s; cursor: pointer;
+}
+.vx-switch-track:before {
+  content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px;
+  background: #fff; border-radius: 50%; transition: transform .15s;
+}
+.vx-switch input:checked + .vx-switch-track { background: var(--color-palette-primary-main); }
+.vx-switch input:checked + .vx-switch-track:before { transform: translateX(16px); }
+
+/* ---------------------------------------------------------------- */
+/* Alerts / notes                                                     */
+/* ---------------------------------------------------------------- */
+.vx-note { border-radius: var(--radius-lg); padding: 14px 18px; font-size: 13px; line-height: 1.5; }
+.vx-note-neutral { background: var(--surface-body); border: 1px solid var(--divider); color: var(--text-secondary); }
+.vx-note-neutral b, .vx-note-neutral strong { color: var(--text-primary); }
+.vx-note-neutral a { color: #2271b1; }
+.vx-note-neutral ul { padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 7px; }
+.vx-note-warning { background: var(--opacity-color-warning-warning-16); color: var(--color-palette-warning-dark, #9a5b06); }
+.vx-note-error { background: var(--opacity-color-error-error-16); color: var(--color-palette-error-dark, var(--color-palette-error-main)); }
+.vx-note-success { background: var(--opacity-color-success-success-16, rgba(40,199,111,.16)); color: var(--color-palette-success-dark, var(--color-palette-success-main)); display: flex; align-items: flex-start; gap: 10px; max-width: 1120px; margin-bottom: 18px; }
+.vx-inline-warning { color: #9a5b06; font-size: 13px; margin-top: 14px; }
+
+/* ---------------------------------------------------------------- */
+/* Tables                                                             */
+/* ---------------------------------------------------------------- */
+.vx-table-wrap { border: 1px solid var(--divider); border-radius: var(--radius-md); overflow: hidden; }
+.vx-table { width: 100%; border-collapse: collapse; }
+.vx-table th {
+  text-align: left; padding: 13px 20px; font-size: 12px; font-weight: 600; letter-spacing: .5px;
+  text-transform: uppercase; color: var(--text-secondary); background: var(--misc-table-header);
+  border-top: 1px solid var(--divider); border-bottom: 1px solid var(--divider); white-space: nowrap;
+}
+.vx-table td { padding: 16px 20px; font-size: 14px; color: var(--text-primary); border-top: 1px solid var(--divider); }
+.vx-table-empty { text-align: center; padding: 40px; font-size: 14px; color: var(--text-secondary); }
+.vx-table-empty i { display: block; margin-bottom: 6px; font-size: 26px; color: var(--text-disabled); }
+
+/* ---------------------------------------------------------------- */
+/* Form fields (plain inputs styled to Vuexy sizing)                  */
+/* ---------------------------------------------------------------- */
+.vx-field { display: flex; flex-direction: column; gap: 6px; }
+.vx-field label { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.vx-field .vx-help { font-size: 12px; color: var(--text-secondary); }
+.vx-input, .vx-select, .vx-textarea {
+  width: 100%; min-width: 0; height: 48px; box-sizing: border-box; padding: 0 16px;
+  border: 1px solid var(--theme-input-border); border-radius: var(--radius-md);
+  font-family: var(--font-sans); font-size: 15px; color: var(--text-primary); background: #fff;
+}
+.vx-input:focus, .vx-select:focus, .vx-textarea:focus { outline: none; border-color: var(--color-palette-primary-main); }
+.vx-textarea { height: auto; padding: 12px 16px; resize: vertical; }
+.vx-input-sm { height: 40px; }
+.vx-grid-2 { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 18px; }
+
+/* ---------------------------------------------------------------- */
+/* Chips (variable inserts)                                          */
+/* ---------------------------------------------------------------- */
+.vx-chip-caption { font-size: 12px; color: var(--text-secondary); margin: 10px 0 8px; }
+.vx-chip {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600;
+  padding: 4px 10px 4px 8px; border-radius: 500px; background: var(--opacity-color-primary-primary-16);
+  color: var(--color-palette-primary-main); cursor: pointer; user-select: none; margin: 0 6px 6px 0; border: none;
+}
+.vx-chip:hover { background: var(--color-palette-primary-main); color: #fff; }
+.vx-chip i { font-size: 13px; }
+
+/* ---------------------------------------------------------------- */
+/* Tooltip (bare, CSS-only)                                          */
+/* ---------------------------------------------------------------- */
+.vx-tip { position: relative; display: inline-flex; cursor: help; color: var(--text-disabled); font-size: 15px; }
+.vx-tip .vx-tip-bubble {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  width: 230px; background: #2F2B3D; color: #fff; font-size: 12px; line-height: 1.45; font-weight: 400;
+  padding: 8px 10px; border-radius: var(--radius-md); text-align: left; white-space: normal;
+  display: none; z-index: 40;
+}
+.vx-tip:hover .vx-tip-bubble { display: block; }
+
+/* ---------------------------------------------------------------- */
+/* Responsive                                                        */
+/* ---------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .vx-aside { display: none; }
+  .vx-content-pad { padding: 20px; }
+}
+
+/* ---------------------------------------------------------------- */
+/* Yetkilendirme transfer listeleri (Giris ekranindaki kart)          */
+/* ---------------------------------------------------------------- */
+.vx-transfer { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 14px; align-items: center; }
+.vx-transfer-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--text-secondary); margin-bottom: 6px;
+}
+.vx-transfer-mid { color: var(--text-secondary); font-size: 22px; display: flex; justify-content: center; }
+.vx-transfer-list {
+  width: 100%; box-sizing: border-box; border: 1px solid var(--theme-input-border);
+  border-radius: var(--radius-md); padding: 8px; font-family: var(--font-sans);
+  font-size: 14px; color: var(--text-primary); background: #fff;
+}
+.vx-transfer-list:focus { outline: none; border-color: var(--color-palette-primary-main); }
+.vx-transfer-actions { display: flex; justify-content: center; gap: 10px; margin-top: 14px; margin-bottom: 22px; }
+
+/* ---------------------------------------------------------------- */
+/* SweetAlert2 pop-up'lari — Vuexy gorunumu                          */
+/* Bu stil sayfasi yalnizca eklentinin kendi admin sayfasinda         */
+/* yuklendigi icin (bkz. netgsm_loadcustomadminstyle hook kontrolu)   */
+/* genel .swal2-* secicileri baska eklentileri etkilemez. Pop-up      */
+/* body seviyesinde render edildiginden .vx-shell ile sinirlanamaz.   */
+/* ---------------------------------------------------------------- */
+.swal2-popup {
+  border-radius: var(--radius-lg); font-family: var(--font-sans); padding: 26px;
+}
+.swal2-popup .swal2-title { font-size: 19px; font-weight: 700; color: var(--text-primary); }
+.swal2-popup .swal2-content,
+.swal2-popup .swal2-html-container { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+.swal2-popup .swal2-textarea,
+.swal2-popup .swal2-input {
+  border: 1px solid var(--theme-input-border); border-radius: var(--radius-md);
+  font-family: var(--font-sans); font-size: 15px; box-shadow: none;
+}
+.swal2-popup .swal2-textarea:focus,
+.swal2-popup .swal2-input:focus { border-color: var(--color-palette-primary-main); box-shadow: none; }
+
+/* Butonlar: onay = siyah (tasarimdaki birincil buton), iptal = outlined */
+.swal2-popup .swal2-styled.swal2-confirm {
+  background-color: #2F2B3D !important; border: 1px solid #2F2B3D !important; color: #fff !important;
+  border-radius: var(--radius-md); font-size: 14px; font-weight: 600; padding: 0 16px; height: 38px;
+  box-shadow: none !important;
+}
+.swal2-popup .swal2-styled.swal2-confirm:hover { background-color: #232030 !important; }
+.swal2-popup .swal2-styled.swal2-cancel {
+  background-color: transparent !important; border: 1px solid var(--theme-input-border) !important;
+  color: var(--text-secondary) !important; border-radius: var(--radius-md);
+  font-size: 14px; font-weight: 600; padding: 0 16px; height: 38px; box-shadow: none !important;
+}
+.swal2-popup .swal2-styled.swal2-cancel:hover { background-color: var(--surface-body) !important; }
+.swal2-popup .swal2-styled:focus { box-shadow: none !important; }
+
+/* ---------------------------------------------------------------- */
+/* WooCommerce SMS — toggle list with revealed content (phone/        */
+/* textarea/chips/gear), single column inside one secBox.             */
+/* ---------------------------------------------------------------- */
+.vx-wc-item { padding: 16px 0; }
+.vx-wc-item:first-child { padding-top: 0; }
+.vx-wc-item + .vx-wc-item { border-top: 1px solid var(--divider); }
+.vx-wc-reveal { padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--divider); display: flex; flex-direction: column; gap: 12px; }
+.vx-gear-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: var(--radius-md); border: 1px solid var(--theme-input-border); background: #fff; cursor: pointer;
+}
+.vx-gear-btn:hover { background: var(--surface-body); }
+.vx-gear-btn i { font-size: 18px; }
+.vx-chip-list { font-size: 12px; color: var(--text-secondary); margin: 0; line-height: 2.1; }
+.vx-chip-list mark {
+  display: inline-flex; align-items: center; font-size: 12px; font-weight: 600;
+  padding: 3px 10px; border-radius: 500px; background: var(--opacity-color-primary-primary-16);
+  color: var(--color-palette-primary-main); cursor: pointer; margin: 0 4px 4px 0; border: none;
+}
+.vx-chip-list mark:hover { background: var(--color-palette-primary-main); color: #fff; }
+
+/* ---------------------------------------------------------------- */
+/* bootstrap-table cosmetic override (Toplu SMS / Gelen SMS)          */
+/* The plugin's own JS still drives pagination/search/sort — only     */
+/* colors/spacing are retouched here, structure is untouched.         */
+/* ---------------------------------------------------------------- */
+.vx-bstable-wrap .fixed-table-toolbar .search input {
+  height: 40px; border: 1px solid var(--theme-input-border); border-radius: var(--radius-md);
+  font-family: var(--font-sans); font-size: 14px; padding: 0 14px; box-shadow: none;
+}
+.vx-bstable-wrap table.table { border-collapse: collapse; }
+.vx-bstable-wrap .fixed-table-container { border: 1px solid var(--divider); border-radius: var(--radius-md); }
+.vx-bstable-wrap table.table th {
+  background: var(--misc-table-header); color: var(--text-secondary); font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .5px; border-color: var(--divider) !important;
+}
+.vx-bstable-wrap table.table td { font-size: 14px; color: var(--text-primary); border-color: var(--divider) !important; }
+.vx-bstable-wrap .fixed-table-pagination { font-size: 13px; color: var(--text-secondary); }
+.vx-bstable-wrap .pagination a { border-radius: var(--radius-sm); }

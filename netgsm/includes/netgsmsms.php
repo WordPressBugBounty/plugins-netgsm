@@ -132,24 +132,41 @@ class Netgsmsms
      */
     public function sendOTPSMS($phone, $message)
     {
-        $request_url = 'https://api.netgsm.com.tr/sms/send/otp';
-        $xml = array(
-            'body' => '<?xml version="1.0"?>
-                                <mainbody>
-                                    <header>
-                                        <usercode>' . $this->usercode . '</usercode>
-                                        <password>' . $this->password . '</password>
-                                        <appkey>' . $this->appkey . '</appkey>
-                                        <msgheader>' . $this->title . '</msgheader>
-                                    </header>
-                                    <body>
-                                        <msg><![CDATA[' . substr($message, 0, 150) . ']]></msg>
-                                        <no>' . $phone . '</no>
-                                    </body>
-                                </mainbody>'
-        );
-        $response = wp_remote_post($request_url, $xml);
-        return $this->xmlCevap($this->responseDecoder($response)['body']);
+        // Netgsm REST v2 OTP servisi. Eski XML endpoint'inden (/sms/send/otp) farklari:
+        // kimlik bilgileri govdede degil HTTP Basic Auth basliginda gonderilir, appkey
+        // parametresi yoktur ve yanit JSON doner. Donus sekli (durum/kod/gorevid/mesaj)
+        // bilerek korunuyor; cagiran taraflar $result['kod'] == '00' kontrolu yapiyor.
+        $request_url = 'https://api.netgsm.com.tr/sms/rest/v2/otp';
+        $auth = base64_encode($this->usercode . ':' . $this->password);
+
+        $response = wp_remote_post($request_url, array(
+            'headers' => array(
+                'Authorization' => 'Basic ' . $auth,
+                'Content-Type'  => 'application/json',
+                'Accept'        => 'application/json',
+            ),
+            'body' => wp_json_encode(array(
+                'msgheader' => $this->title,
+                'msg'       => substr($message, 0, 150),
+                'no'        => $phone,
+            )),
+        ));
+
+        if (is_wp_error($response)) {
+            return array('durum' => 0, 'kod' => 'ERR', 'mesaj' => $response->get_error_message());
+        }
+
+        $data = json_decode(wp_remote_retrieve_body($response), true);
+
+        if (!is_array($data) || !isset($data['code'])) {
+            return array('durum' => 0, 'kod' => 'ERR', 'mesaj' => 'Netgsm OTP servisinden beklenmeyen yanit alindi.');
+        }
+
+        // smsCevap() "<kod> <gorevid>" bicimini bekliyor; boylece mevcut hata
+        // mesajlari ve donus yapisi aynen kullanilabiliyor.
+        $jobid = isset($data['jobid']) ? $data['jobid'] : '';
+
+        return $this->smsCevap(trim($data['code'] . ' ' . $jobid));
     }
 
     public function sendBulkSMS($data, $filter = 0)
@@ -278,6 +295,25 @@ Ayrıca eğer API erişiminizde IP sınırlaması yaptıysanız ve sınırladı�
         return $result;
     }
 
+    /**
+     * Netgsm bakiye degerini Turkce para bicimine cevirir.
+     *
+     * API bakiyeyi "55,070" gibi virgullu bir metin olarak donduruyor; dogrudan
+     * (float) cevirmek virgulde durup kurusleri dusuruyordu. Virgul varsa Turkce
+     * bicim kabul edilir (binlik ".", ondalik ","), yoksa deger oldugu gibi okunur.
+     */
+    private function formatTutar($deger)
+    {
+        $deger = trim((string) $deger);
+
+        if (strpos($deger, ',') !== false) {
+            $deger = str_replace('.', '', $deger);   // binlik ayiracini at
+            $deger = str_replace(',', '.', $deger);  // ondalik ayiracini normalize et
+        }
+
+        return number_format((float) $deger, 2, ',', '.');
+    }
+
     public function netgsm_GetKredi($user, $pass, $balanceOrBakiye)
     {
 
@@ -303,15 +339,40 @@ Ayrıca eğer API erişiminizde IP sınırlaması yaptıysanız ve sınırladı�
         $data = json_decode($response_body, true);
         if (isset($data['balance'])) {
             $adet_sms = '';
+            $paketler  = array();
+            $bakiye    = '';
+
             if ($balanceOrBakiye == 2) {
-                $adet_sms = 'balance ' .  $data['balance'];;
+                // stip=2 tek bir bakiye degeri dondurur.
+                $adet_sms = 'Bakiye ' . $this->formatTutar($data['balance']);
+                $bakiye   = $adet_sms;
             } else {
+                // stip=1 sadece paketleri, stip=3 paketler + kredi bakiyesini birlikte
+                // liste halinde dondurur. Bakiye kalemi "... Bakiye" adiyla geliyor;
+                // onu para olarak bicimlendirip paketlerden ayiriyoruz.
                 $balanceList = $data['balance'];
                 foreach ($balanceList as $key => $balance) {
-                    $adet_sms .= $balance['amount'] . ' ' .  $balance['balance_name'] . " ";
+                    $ad   = isset($balance['balance_name']) ? $balance['balance_name'] : '';
+                    $adet = isset($balance['amount']) ? $balance['amount'] : '';
+
+                    if (stripos($ad, 'bakiye') !== false) {
+                        $bakiye = 'Bakiye ' . $this->formatTutar($adet);
+                        continue;
+                    }
+
+                    $paketler[] = trim($adet . ' ' . $ad);
                 }
+
+                $adet_sms = trim(implode(' · ', $paketler));
             }
-            $result = array('giris' => 'success', 'durum' => true, 'tipmsj' => $adet_sms);
+
+            $result = array(
+                'giris'   => 'success',
+                'durum'   => true,
+                'tipmsj'  => $adet_sms,
+                'paketler' => $paketler,
+                'bakiye'  => $bakiye,
+            );
             return $result;
         }
 
@@ -383,14 +444,16 @@ Ayrıca eğer API erişiminizde IP sınırlaması yaptıysanız ve sınırladı�
             );
             return json_encode($response);
         }
-        $responsePaket = $this->netgsm_GetKredi($user, $pass, 1);
-        $responseKredi = $this->netgsm_GetKredi($user, $pass, 2);
-        if ($responseKredi['durum'] || $responsePaket['durum']) {
+        // stip=3 tek istekte hem paketleri (Adet SMS, Adet OTP SMS) hem de kredi
+        // bakiyesini dondurur; eskiden stip=1 ve stip=2 ile iki ayri istek atiliyordu.
+        $responseBakiye = $this->netgsm_GetKredi($user, $pass, 3);
+
+        if ($responseBakiye['durum']) {
             $result = array(
                 'durum' => 'success',
                 'icon' => 'fa-check',
-                'mesajKredi' => $responseKredi['tipmsj'],
-                'mesajPaket' => $responsePaket['tipmsj'],
+                'mesajKredi' => $responseBakiye['bakiye'],
+                'mesajPaket' => $responseBakiye['tipmsj'],
                 'btnkontrol' => 'enabled',
                 'href' => ''
             );
@@ -398,8 +461,8 @@ Ayrıca eğer API erişiminizde IP sınırlaması yaptıysanız ve sınırladı�
             $result = array(
                 'durum' => 'warning',
                 'icon' => 'fa-shopping-cart',
-                'mesajKredi' => ' Bakiye: ' . $responseKredi['mesaj'] . ' <i class=\'fa fa-external-link\'></i>',
-                'mesajPaket' => ' Paket: ' . $responsePaket['mesaj'] . ' Paket satın al <i class=\'fa fa-external-link\'></i>',
+                'mesajKredi' => ' Bakiye: ' . $responseBakiye['mesaj'] . ' <i class=\'fa fa-external-link\'></i>',
+                'mesajPaket' => ' Paket satın al <i class=\'fa fa-external-link\'></i>',
                 'btnkontrol' => 'enabled',
                 'href' => 'https://portal.netgsm.com.tr/'
             );

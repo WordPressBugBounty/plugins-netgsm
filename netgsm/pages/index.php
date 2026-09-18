@@ -79,335 +79,580 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
     //$netgsm_auth_users_control 0 ise bu özellik kapalıdır ve user bazlı yetki kontrolüne gerek yoktur..
 ?>
     <br>
-    <div class="container-fluid">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title"><i class="fa fa-pencil"></i> Netgsm Eklenti Ayarları
-                    <?php if ($cevap->btnkontrol == "enabled") { ?>
-                        <!-- <form action="options.php" method="get" id="formLogout" name="formLogout">
-                                <?php /*settings_fields( ' netgsmoptionslogout' ); */ ?>
-                                <?php /*do_settings_sections( 'netgsmoptionslogout' ); */ ?>
-                                <button class="btn btn-danger btn-sm" id="logout" name="logout" type="submit" style="float: right; margin-top: -20px">Çıkış <i class="fa fa-sign-out"></i></button>
-                            </form>-->
-                        <button class="btn btn-danger btn-sm" type="text" onclick="logout()" style="float: right; margin-top: -5px">Çıkış <i class="fa fa-sign-out"></i></button>
-                    <?php } ?>
-                </h3>
-            </div>
-
-            <div class="panel-body">
-                <div class="col-md-6 text-left">
-                    <a href="https://www.netgsm.com.tr/" alt="Yeni nesil telekom operatörü" target="_blank">
-                        <img src="<?= esc_url(plugins_url('lib/image/logo.png', dirname(__FILE__))) ?>" width="130" height="40">
+    <div class="vx-shell">
+        <div class="vx-page">
+            <div class="vx-panel">
+                <div class="vx-topbar">
+                    <a href="https://www.netgsm.com.tr/" alt="Yeni nesil telekom operatörü" target="_blank" class="vx-topbar-logo">
+                        <img src="<?= esc_url(plugins_url('lib/image/netgsm-logo-dark.png', dirname(__FILE__))) ?>" alt="Netgsm">
                     </a>
 
-                </div>
-                <div class="col-md-6 text-right">
-                    <div <?php if ($cevap->href != "") { ?>onclick="window.open('<?php echo esc_url($cevap->href); ?>','_blank');" <?php } ?> class="alert alert-<?php echo esc_attr($cevap->durum); ?>" id="bakiye" style="display:inline-block;">
-                        <?php if (!empty($cevap->mesaj)) : ?> <i class='fa <?php echo esc_attr($cevap->icon); ?>'></i> <?php echo rtrim(wp_kses_post($cevap->mesaj), ':'); ?><br><?php endif; ?>
-                        <?php if (!empty($cevap->mesajPaket)) : ?> <i class='fa <?php echo esc_attr($cevap->icon); ?>'></i> <?php echo rtrim(wp_kses_post($cevap->mesajPaket), ':'); ?><br><?php endif; ?>
-                        <?php if (!empty($cevap->mesajKredi)) : ?> <i class='fa <?php echo esc_attr($cevap->icon); ?>'></i> <?php echo rtrim(wp_kses_post($cevap->mesajKredi), ':'); ?><br><?php endif; ?>
+                    <div class="vx-topbar-right">
+                        <div <?php if ($cevap->href != "") { ?>onclick="window.open('<?php echo esc_url($cevap->href); ?>','_blank');" <?php } ?> class="vx-badge<?php echo ($cevap->href != "") ? ' is-clickable' : ''; ?>" id="bakiye" <?php if ($cevap->href != "") { ?>style="cursor:pointer"<?php } ?>>
+                            <?php
+                            // Dolu olan parcalari topla, aralarina yalnizca gercekten iki parca varsa
+                            // ayirici koy (aksi halde basta bosta bir "·" kaliyordu).
+                            $ngsm_badge_parts = array();
+                            if (!empty($cevap->mesaj)) {
+                                $ngsm_badge_parts[] = "<i class='fa " . esc_attr($cevap->icon) . "'></i> " . rtrim(wp_kses_post($cevap->mesaj), ':');
+                            }
+                            if (!empty($cevap->mesajPaket)) {
+                                $ngsm_badge_parts[] = trim(rtrim(wp_kses_post($cevap->mesajPaket), ':'));
+                            }
+                            if (!empty($cevap->mesajKredi)) {
+                                $ngsm_badge_parts[] = trim(rtrim(wp_kses_post($cevap->mesajKredi), ':'));
+                            }
+                            echo implode(' · ', $ngsm_badge_parts);
+                            ?>
+                        </div>
+                        <button class="vx-btn vx-btn-outline-error vx-btn-sm" id="ngsm-logout-btn" type="button" onclick="logout()" style="display:<?php echo ($cevap->btnkontrol == "enabled") ? '' : 'none'; ?>;"><i class="fa fa-sign-out"></i> Çıkış</button>
                     </div>
                 </div>
 
+                <div class="vx-body">
+                    <form action="options.php" method="post" id="form-module" class="form-horizontal" name="form-module" style="width:100%; display:flex;">
+                        <?php settings_fields('netgsmoptions'); ?>
+                        <?php do_settings_sections('netgsmoptions'); ?>
+                        <input type="hidden" name="sayfayi_yenile" id="sayfayi_yenile" value="0">
 
-                <form action="options.php" method="post" id="form-module" class="form-horizontal" name="form-module">
-                    <?php settings_fields('netgsmoptions'); ?>
-                    <?php do_settings_sections('netgsmoptions'); ?>
-                    <input type="hidden" name="sayfayi_yenile" id="sayfayi_yenile" value="0">
-                    <div class="tab-pane">
-                        <ul class="nav nav-tabs" id="language">
-                            <li><a href="#login" data-toggle="tab"><i class="fa fa-sign-in"></i> Giriş</a></li>
-                            <li><a href="#sms" data-toggle="tab"><i class="fa fa-envelope-o"></i> WooCommerce
-                                    SMS</a></li>
-                            <li><a href="#tf2sms" data-toggle="tab"><i class="fa fa-key"></i> Üyelik Doğrulama</a>
-                            </li>
-                            <li><a href="#bulksms" data-toggle="tab"><i class="fa fa-comments-o"></i> Toplu SMS </a></li>
-                            <li><a href="#privatesms" data-toggle="tab"><i class="fa fa-commenting"></i> Özel
-                                    SMS</a></li>
-                            <li><a href="#cf7sms" data-toggle="tab"><i class="fa fa-envelope-o"></i> Contact Form7
-                                    SMS</a></li>
-                            <li><a href="#iys" data-toggle="tab"><i class="fa fa-toggle-on"></i> İYS
-                                </a></li>
-                            <li><a href="#inbox" data-toggle="tab"><i class="fa fa-inbox"></i> Gelen sms</a></li>
-                            <li><a href="#voip" data-toggle="tab"><i class="fa fa-phone"></i> Gelen Çağrılar</a>
-                            </li>
-                            <li><a href="#asistan" data-toggle="tab"><i class="fa fa-external-link"></i> Netasistan</a>
-                            </li>
-                            <li><a href="#settings" data-toggle="tab"><i class="fa fa-gear"></i> Ayarlar</a></li>
+                        <div class="vx-aside">
+                            <div class="vx-aside-inner">
+                                <div class="vx-aside-label">Netgsm SMS</div>
+                                <ul class="vx-nav" id="language">
+                                    <li><a href="#login" data-toggle="tab" class="vx-nav-link"><i class="ti ti-login"></i> Giriş</a></li>
+                                    <li><a href="#sms" data-toggle="tab" class="vx-nav-link"><i class="ti ti-shopping-cart"></i> WooCommerce SMS</a></li>
+                                    <li><a href="#tf2sms" data-toggle="tab" class="vx-nav-link"><i class="ti ti-user-check"></i> Üyelik Doğrulama</a></li>
+                                    <li><a href="#bulksms" data-toggle="tab" class="vx-nav-link"><i class="ti ti-messages"></i> Toplu SMS</a></li>
+                                    <li><a href="#privatesms" data-toggle="tab" class="vx-nav-link"><i class="ti ti-message-plus"></i> Özel SMS</a></li>
+                                    <li><a href="#cf7sms" data-toggle="tab" class="vx-nav-link"><i class="ti ti-forms"></i> Contact Form7 SMS</a></li>
+                                    <li><a href="#iys" data-toggle="tab" class="vx-nav-link"><i class="ti ti-shield-check"></i> İYS</a></li>
+                                </ul>
+                            </div>
+                        </div>
 
-                        </ul>
-                        <div class="tab-content">
+                        <div class="vx-content">
+                            <div class="vx-content-pad">
+                                <div class="tab-content">
                             <div class="tab-pane" id="login">
-                                <hr>
-                                <div class="form-group">
-                                    <label class="col-sm-2 control-label" for="netgsm_user">Kullanıcı Adı : </label>
-                                    <div class="col-sm-10">
-                                        <div class="input-group">
-                                            <div class="input-group-addon">
-                                                <i class="fa fa-user" style="color: #17A2B8;"></i>
-                                            </div>
-                                            <input type="text" name="netgsm_user" id="netgsm_user" placeholder="Kullanıcı Adı" value="<?php echo esc_attr(get_option("netgsm_user")); ?>" class="form-control" onkeypress="return RestrictSpace()" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-sm-2 control-label" for="netgsm_pass">Şifre : </label>
-                                    <div class="col-sm-10">
-                                        <div class="input-group">
-                                            <div class="input-group-addon">
-                                                <i class="fa fa-lock" style="color: #17A2B8;"></i>
-                                            </div>
-                                            <input type="password" name="netgsm_pass" placeholder="Şifre" id="netgsm_pass" value="<?php echo esc_attr(get_option("netgsm_pass")); ?>" class="form-control" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-sm-2"></div>
-                                    <div class="col-sm-8">
-                                        <button class="btn btn-success" id="login_save" name="login_save" onclick="login();"> Hesabımı Doğrula
-                                        </button>
+                                <?php
+                                $netgsm_all_smstitle   = $netgsm->getSmsBaslik();
+                                $netgsm_input_smstitle = esc_html(get_option("netgsm_input_smstitle"));
+                                $netgsm_trChar         = esc_html(get_option("netgsm_trChar"));
+                                if ($cevap->btnkontrol != "enabled") { $netgsm_trChar = 0; }
+                                $netgsm_iys_control       = esc_html(get_option("netgsm_iys_control"));
+                                $netgsm_brandcode_control = esc_html(get_option("netgsm_brandcode_control"));
+                                $netgsm_status = esc_html(get_option("netgsm_status"));
+                                if ($cevap->btnkontrol != "enabled") { $netgsm_status = 0; }
+                                $ngsm_connected = ($cevap->btnkontrol == "enabled");
+                                ?>
+                                <div class="vx-page-header">
+                                    <div class="vx-page-header-icon"><i class="ti ti-login"></i></div>
+                                    <div class="vx-page-header-text">
+                                        <h2 class="vx-page-header-title">Giriş</h2>
+                                        <p class="vx-page-header-subtitle">Netgsm hesabınız ve varsayılan SMS ayarları</p>
                                     </div>
                                 </div>
 
-                                <div class="form-group">
-                                    <?php $netgsm_all_smstitle = $netgsm->getSmsBaslik();
-                                    $netgsm_input_smstitle = esc_html(get_option("netgsm_input_smstitle")); ?>
-                                    <label for="input-baslik" class="col-sm-2 control-label" style="color: <?php if (isset($netgsm_input_smstitle) && !empty($netgsm_input_smstitle) && $netgsm_input_smstitle || $netgsm_input_smstitle != 0) { ?>#2ECC71 <?php } else { ?>#E74C3C <?php } ?>;">
-                                        SMS Başlığı :
-                                    </label>
-                                    <div class="col-sm-10">
-                                        <div class="input-group">
-                                            <div class="input-group-addon">
-                                                <i class="fa fa-header" style="color: #17A2B8;"></i>
+                                <div class="vx-screen" style="max-width:640px;">
+
+                                    <div id="ngsm-connect-strip" style="display:<?php echo $ngsm_connected ? 'flex' : 'none'; ?>;align-items:center;gap:14px;padding:14px 18px;border-radius:var(--radius-lg);background:var(--opacity-color-success-success-8);margin-bottom:32px;">
+                                        <div style="width:40px;height:40px;border-radius:50%;background:var(--color-palette-success-main);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                            <i class="ti ti-circle-check" style="font-size:22px;"></i>
+                                        </div>
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="font-size:15px;font-weight:700;color:var(--text-primary);">Hesabınız bağlı ve doğrulandı</div>
+                                            <div id="ngsm-connect-user" style="font-size:13px;color:var(--text-secondary);"><?= esc_html(get_option('netgsm_user')) ?> · Netgsm API bağlantısı aktif</div>
+                                        </div>
+                                        <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:500px;background:var(--color-palette-success-main);color:#fff;font-size:13px;font-weight:600;white-space:nowrap;">
+                                            <i class="ti ti-plug-connected"></i> Bağlı
+                                        </span>
+                                    </div>
+
+                                    <div class="vx-secbox">
+                                        <div class="vx-sec-header">
+                                            <i class="ti ti-key vx-sec-icon"></i>
+                                            <h3>Hesap Bilgileri</h3>
+                                        </div>
+                                        <p class="vx-sec-desc">netgsm.com.tr giriş bilgilerinizle aynıdır. Değiştirdikten sonra bağlantıyı doğrulayın.</p>
+                                        <hr class="vx-sec-rule">
+                                        <div class="vx-grid-2" style="margin-top:16px;">
+                                            <div class="vx-field">
+                                                <label for="netgsm_user">Kullanıcı Adı</label>
+                                                <input type="text" name="netgsm_user" id="netgsm_user" class="vx-input" placeholder="Kullanıcı Adı" value="<?php echo esc_attr(get_option("netgsm_user")); ?>" onkeypress="return RestrictSpace()">
+                                                <span class="vx-help">Netgsm abone numaranız veya kullanıcı adınız.</span>
                                             </div>
-                                            <select name="netgsm_input_smstitle" id="netgsm_input_smstitle" class="form-control" style="height: 35px; font-size: 12px;">
-                                                <option value="0">Sms Başlığı Seçiniz</option>
-                                                <?php
-                                                if (isset($netgsm_input_smstitle) && $netgsm_input_smstitle != "" && is_array($netgsm_all_smstitle)) {
-                                                    foreach ($netgsm_all_smstitle as $title) {
-                                                        if ($title != '') {
-                                                            if ($title == $netgsm_input_smstitle) {
-                                                ?>
-                                                                <option value="<?php echo esc_attr($title); ?>" selected><?= esc_html($title); ?></option><?php
-                                                                                                                                                        } else {
-                                                                                                                                                            ?>
-                                                                <option value="<?php echo esc_attr($title); ?>"><?= esc_html($title); ?></option> <?php
-                                                                                                                                                        }
-                                                                                                                                                    }
-                                                                                                                                                }
-                                                                                                                                            } ?>
-                                            </select>
+                                            <div class="vx-field">
+                                                <label for="netgsm_pass">Şifre</label>
+                                                <input type="password" name="netgsm_pass" id="netgsm_pass" class="vx-input" placeholder="Şifre" value="<?php echo esc_attr(get_option("netgsm_pass")); ?>">
+                                                <span class="vx-help">Bilgilerinizi kimseyle paylaşmıyoruz.</span>
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;justify-content:flex-end;margin-top:22px;">
+                                            <button type="button" class="vx-btn vx-btn-outline" id="login_save" name="login_save" onclick="verifyAccountAjax();"><i class="ti ti-user-check"></i> Hesabımı Doğrula</button>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <?php $netgsm_trChar = esc_html(get_option("netgsm_trChar")); ?>
-                                    <?php if ($cevap->btnkontrol != "enabled") {
-                                        $netgsm_trChar = 0;
-                                    } ?>
-                                    <label data-toggle="tooltip" data-placement="right" title="SMS lerde yer alan türkçe karakterlerin gidip gitmeyeceğini ayarlayın. Kapalı ise TR karakterler normal karaktere çevrilir. Bir mesajda Türkçe dil seçeneği seçilerek işlem yapılıyorsa 1 boy SMS 155 karakter üzerinden değil 150 karakter üzerinden hesaplanır. Burada düşen 5 karakter mesajın Türkçe Karakterleride desteklemesi için harcanıyor, yani 150 tane Türkçe karakter kullanabilirim demek değildir. 150 tane karakter hakkım var, içinde Türkçe karakterlerde kullanabilirim anlamına gelir.
-                                        Sistemdeki Türkçe karakterler >> 'ç , ğ , ı , ş , Ğ , İ , Ş 'dir. " class="col-sm-2 control-label" for="input-status" style="color: <?php if (isset($netgsm_trChar) && !empty($netgsm_trChar) && $netgsm_trChar) { ?>#2ECC71<?php } else { ?>#E74C3C<?php } ?>;">SMS
-                                        Türkçe Karakter: </label>
-                                    <div class="col-sm-10">
-                                        <div class="input-group">
-                                            <div class="input-group-addon">
-                                                <i class="fa fa-language" style="color: <?php if (isset($netgsm_trChar) && !empty($netgsm_trChar) && $netgsm_trChar) { ?>#2ECC71<?php } else { ?>#E74C3C<?php } ?>;"></i>
+
+                                    <div class="vx-secbox" style="margin-top:36px;">
+                                        <div class="vx-sec-header">
+                                            <i class="ti ti-adjustments vx-sec-icon"></i>
+                                            <h3>SMS Ayarları</h3>
+                                        </div>
+                                        <p class="vx-sec-desc">Gönderilecek tüm mesajlar için varsayılan değerler.</p>
+                                        <hr class="vx-sec-rule">
+                                        <div class="vx-grid-2" style="margin-top:16px;row-gap:18px;">
+                                            <div class="vx-field">
+                                                <label for="netgsm_input_smstitle">SMS Başlığı</label>
+                                                <select name="netgsm_input_smstitle" id="netgsm_input_smstitle" class="vx-select">
+                                                    <option value="0">Sms Başlığı Seçiniz</option>
+                                                    <?php
+                                                    if (isset($netgsm_input_smstitle) && $netgsm_input_smstitle != "" && is_array($netgsm_all_smstitle)) {
+                                                        foreach ($netgsm_all_smstitle as $title) {
+                                                            if ($title != '') { ?>
+                                                                <option value="<?php echo esc_attr($title); ?>" <?php echo ($title == $netgsm_input_smstitle) ? 'selected' : ''; ?>><?= esc_html($title); ?></option>
+                                                    <?php   }
+                                                        }
+                                                    } ?>
+                                                </select>
+                                                <span class="vx-help">Onaylı gönderici başlığınız.</span>
                                             </div>
-                                            <select name="netgsm_trChar" id="input-trChar" class="form-control" style="height: 35px;">
-                                                <?php if ($netgsm_trChar) { ?>
-                                                    <option value="1" selected>Açık, Türkçe karakterler
-                                                        gönderilsin.
-                                                    </option>
-                                                    <option value="0">Kapalı, Türkçe karakterler gönderilmesin.
-                                                    </option>
-                                                <?php } else { ?>
-                                                    <option value="1">Açık, Türkçe karakterler gönderilsin.</option>
-                                                    <option value="0" selected>Kapalı, Türkçe karakterler
-                                                        gönderilmesin.
-                                                    </option>
-                                                <?php } ?>
-                                            </select>
+                                            <div class="vx-field">
+                                                <label for="input-trChar">Türkçe Karakter</label>
+                                                <select name="netgsm_trChar" id="input-trChar" class="vx-select">
+                                                    <?php if ($netgsm_trChar) { ?>
+                                                        <option value="1" selected>Açık, Türkçe karakterler gönderilsin.</option>
+                                                        <option value="0">Kapalı, Türkçe karakterler gönderilmesin.</option>
+                                                    <?php } else { ?>
+                                                        <option value="1">Açık, Türkçe karakterler gönderilsin.</option>
+                                                        <option value="0" selected>Kapalı, Türkçe karakterler gönderilmesin.</option>
+                                                    <?php } ?>
+                                                </select>
+                                            </div>
+                                            <div class="vx-field">
+                                                <label for="input-iysControl">Mesaj İçerik Türü</label>
+                                                <select name="netgsm_iys_control" id="input-iysControl" class="vx-select" onchange="kontrolEt(this)">
+                                                    <option value="" <?php echo empty($netgsm_iys_control) ? 'selected' : ''; ?>>Mesaj içerik türü seçiniz</option>
+                                                    <option value="1" <?php echo $netgsm_iys_control == '1' ? 'selected' : ''; ?>>Kampanya, tanıtım, kutlama vb. (İYS'ye bireysel kayıtlı alıcılarınıza gönderilir.)</option>
+                                                    <option value="2" <?php echo $netgsm_iys_control == '2' ? 'selected' : ''; ?>>Kampanya, tanıtım, kutlama vb. (İYS'ye tacir kayıtlı alıcılarınıza gönderilir.)</option>
+                                                    <option value="3" <?php echo $netgsm_iys_control == '3' ? 'selected' : ''; ?>>Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.)</option>
+                                                </select>
+                                                <p id="iys_uyari_mesaji" class="vx-help" style="display:none;color:var(--color-palette-error-main);"></p>
+                                            </div>
+                                            <div class="vx-field">
+                                                <label for="input-status">Eklenti Durumu</label>
+                                                <select name="netgsm_status" id="input-status" class="vx-select">
+                                                    <?php if ($netgsm_status) { ?>
+                                                        <option value="1" selected>Açık</option>
+                                                        <option value="0">Kapalı</option>
+                                                    <?php } else { ?>
+                                                        <option value="1">Açık</option>
+                                                        <option value="0" selected>Kapalı</option>
+                                                    <?php } ?>
+                                                </select>
+                                                <?php if (!$netgsm_status) : ?><span class="vx-help">Kapalıyken hiçbir otomatik SMS gönderilmez.</span><?php endif; ?>
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;justify-content:flex-end;margin-top:22px;">
+                                            <button type="button" class="vx-btn vx-btn-primary" id="login_save2" name="login_save2" onclick="saveSmsSettingsAjax();"><i class="ti ti-device-floppy"></i> SMS Ayarlarını Kaydet</button>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="form-group">
+
                                     <?php
-                                    $netgsm_iys_control = esc_html(get_option("netgsm_iys_control"));
-                                    $netgsm_brandcode_control = esc_html(get_option("netgsm_brandcode_control"));
+                                    // Yetkilendirme karti — eskiden ayri "Ayarlar" sekmesindeydi (pages/settings.php).
+                                    // Alan adlari (netgsm_auth_roles / netgsm_auth_users / *_control) ve transfer
+                                    // listesi JS mantigi birebir korundu; yalnizca gorunum yenilendi.
+                                    // Yalnizca administrator gorebilir: yetkilendirilmis ama admin olmayan
+                                    // kullanicilarin yetki listelerini degistirmesi engellenmeli.
+                                    if (current_user_can('administrator')) :
+                                        $ngsm_roles_on = (esc_attr(get_option('netgsm_auth_roles_control')) == 1);
+                                        $ngsm_users_on = (esc_attr(get_option('netgsm_auth_users_control')) == 1);
+                                        $ngsm_zero_on  = (get_option('netgsm_phonenumber_zero1') == 1);
+                                        $ngsm_lic_on   = (get_option('netgsm_licence_key_to_meta') == 1);
                                     ?>
-                                    <label data-toggle="tooltip" data-placement="right" title="* Hesabınıza tanımlı marka kodunuz bulunmuyorsa Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.) seçilmelidir." class="col-sm-2 control-label" for="input-status" style="color: <?php echo (!empty($netgsm_iys_control)) ? '#2ECC71' : '#E74C3C'; ?>;">Mesaj içerik Türü:</label>
-
-                                    <div class="col-sm-10">
-                                        <div class="input-group">
-                                            <div class="input-group-addon">
-                                                <i class="fa fa-envelope" style="color: <?php echo (!empty($netgsm_iys_control)) ? '#2ECC71' : '#E74C3C'; ?>;"></i>
+                                    <div class="vx-secbox" style="margin-top:36px;">
+                                        <div class="vx-sec-header vx-sec-header-toggle">
+                                            <div style="display:flex;align-items:center;gap:9px;">
+                                                <i class="ti ti-shield-lock vx-sec-icon"></i>
+                                                <h3>Yetkilendirme</h3>
                                             </div>
-                                            <select name="netgsm_iys_control" id="input-iysControl" class="form-control" style="height: 35px;" onchange="kontrolEt(this)">
-                                                <option value="" <?php echo empty($netgsm_iys_control) ? 'selected' : ''; ?>>Mesaj içerik türü seçiniz</option>
-                                                <option value="1" <?php echo $netgsm_iys_control == '1' ? 'selected' : ''; ?>> Kampanya, tanıtım, kutlama vb. (İYS'ye bireysel kayıtlı alıcılarınıza gönderilir.)</option>
-                                                <option value="2" <?php echo $netgsm_iys_control == '2' ? 'selected' : ''; ?>>Kampanya, tanıtım, kutlama vb. (İYS'ye tacir kayıtlı alıcılarınıza gönderilir.)</option>
-                                                <option value="3" <?php echo $netgsm_iys_control == '3' ? 'selected' : ''; ?>>Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.)</option>
-                                            </select>
+                                            <button type="button" class="vx-gear-btn" id="ngsm_auth_eye" onclick="ngsmToggleAuthCard()" title="Yetkilendirme ayarlarını göster/gizle">
+                                                <i class="ti ti-eye-off" id="ngsm_auth_eye_icon"></i>
+                                            </button>
                                         </div>
-                                        <p id="iys_uyari_mesaji" style="color:red; margin-top:5px; display:none;"></p>
+                                        <p class="vx-sec-desc">Eklentiye hangi rol ve kullanıcıların erişebileceğini yönetin. Administrator (Yönetici) rolü her durumda tam yetkilidir.</p>
+                                        <div id="ngsm_auth_body" style="display:none;">
+                                        <hr class="vx-sec-rule">
+
+                                        <!-- Tam Yetkili Roller -->
+                                        <div class="vx-wc-item">
+                                            <div class="vx-toggle-row" style="border-bottom:none;padding:0;">
+                                                <div class="vx-toggle-row-left">
+                                                    <i class="ti ti-users-group"></i>
+                                                    <div>
+                                                        <p class="vx-toggle-row-label">Tam Yetkili Roller</p>
+                                                        <p class="vx-toggle-row-desc">Kapalıyken seçilen roller dikkate alınmaz.</p>
+                                                    </div>
+                                                </div>
+                                                <label class="vx-switch">
+                                                    <input name="netgsm_auth_roles_control" id="switch_netgsm_roles" type="checkbox" value="1" onchange="netgsm_field_onoff_custom('netgsm_roles')" <?php checked($ngsm_roles_on); ?>>
+                                                    <span class="vx-switch-track"></span>
+                                                </label>
+                                            </div>
+                                            <div class="vx-sec-reveal" id="field_netgsm_roles" style="<?php echo $ngsm_roles_on ? '' : 'display:none;'; ?>">
+                                                <input type="hidden" id="netgsm_auth_roles_text" name="netgsm_auth_roles" value="<?php echo esc_attr(get_option('netgsm_auth_roles')); ?>">
+                                                <div class="vx-transfer">
+                                                    <div>
+                                                        <div class="vx-transfer-label">Rol Listesi</div>
+                                                        <select multiple id="netgsm_auth_roles" class="vx-transfer-list" size="6">
+                                                            <?php foreach ($role_list as $key => $role) {
+                                                                if ($key == 'administrator' || in_array($key, $auth_roles)) { continue; } ?>
+                                                                <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($role); ?></option>
+                                                            <?php } ?>
+                                                        </select>
+                                                    </div>
+                                                    <div class="vx-transfer-mid"><i class="ti ti-arrows-exchange"></i></div>
+                                                    <div>
+                                                        <div class="vx-transfer-label">İzin Verilen Roller</div>
+                                                        <select multiple id="netgsm_auth_roles_selected" class="vx-transfer-list" size="6">
+                                                            <?php foreach ($auth_roles as $key => $role) {
+                                                                if ($role == 'administrator') { continue; } ?>
+                                                                <option value="<?php echo esc_attr($role); ?>"><?php echo esc_html($role_list[$role]); ?></option>
+                                                            <?php } ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="vx-transfer-actions">
+                                                    <button type="button" class="vx-btn vx-btn-primary vx-btn-sm" id="netgsm_add_role_btn">İzin Ver <i class="ti ti-arrow-right"></i></button>
+                                                    <button type="button" class="vx-btn vx-btn-outline-error vx-btn-sm" id="netgsm_delete_role_btn"><i class="ti ti-arrow-left"></i> Kaldır</button>
+                                                </div>
+                                                <div class="vx-note vx-note-neutral">
+                                                    <ul>
+                                                        <li><b>Administrator (Yönetici)</b> rolü her durumda <b>tam yetkilidir</b>.</li>
+                                                        <li><b>CTRL</b> tuşu ile birden fazla rol seçebilirsiniz.</li>
+                                                        <li>Ekleme/çıkarma sonrası değişiklikleri kaydetmelisiniz.</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Yetkili Kullanıcılar -->
+                                        <div class="vx-wc-item">
+                                            <div class="vx-toggle-row" style="border-bottom:none;padding:0;">
+                                                <div class="vx-toggle-row-left">
+                                                    <i class="ti ti-user-shield"></i>
+                                                    <div>
+                                                        <p class="vx-toggle-row-label">Yetkili Kullanıcılar</p>
+                                                        <p class="vx-toggle-row-desc">Yalnızca izin verilen rollerdeki kullanıcılar seçilebilir.</p>
+                                                    </div>
+                                                </div>
+                                                <label class="vx-switch">
+                                                    <input name="netgsm_auth_users_control" id="switch_netgsm_users" type="checkbox" value="1" onchange="netgsm_field_onoff_custom('netgsm_users')" <?php checked($ngsm_users_on); ?>>
+                                                    <span class="vx-switch-track"></span>
+                                                </label>
+                                            </div>
+                                            <div class="vx-sec-reveal" id="field_netgsm_users" style="<?php echo $ngsm_users_on ? '' : 'display:none;'; ?>">
+                                                <input type="hidden" id="netgsm_auth_users_text" name="netgsm_auth_users" value="<?php echo esc_attr(get_option('netgsm_auth_users')); ?>">
+                                                <div class="vx-transfer">
+                                                    <div>
+                                                        <div class="vx-transfer-label">Kullanıcı Listesi</div>
+                                                        <select multiple id="netgsm_auth_users" class="vx-transfer-list" size="6">
+                                                            <?php foreach ($users as $key => $user) {
+                                                                if (
+                                                                    in_array($user->roles[0], ['administrator'])
+                                                                    || (in_array($user->roles[0], $auth_roles) && $netgsm_auth_roles_control == 1)
+                                                                ) {
+                                                                    if ($user->user_login == 'admin' || in_array($user->ID, $auth_users)) { continue; } ?>
+                                                                    <option value="<?php echo esc_attr($user->ID); ?>"><?php echo esc_html($user->display_name) . ' (' . esc_html($role_list[$user->roles[0]]) . ')'; ?></option>
+                                                            <?php }
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+                                                    <div class="vx-transfer-mid"><i class="ti ti-arrows-exchange"></i></div>
+                                                    <div>
+                                                        <div class="vx-transfer-label">Yetki Verilen Kullanıcılar</div>
+                                                        <select multiple id="netgsm_auth_users_selected" class="vx-transfer-list" size="6">
+                                                            <?php foreach ($auth_users as $key => $userID) {
+                                                                // netgsm_findUser() eskiden settings.php'de tanimliydi; o dosya
+                                                                // artik dahil edilmedigi icin arama burada satir ici yapiliyor.
+                                                                $ngsm_u = false;
+                                                                foreach ($users as $u) { if ($u->ID == $userID) { $ngsm_u = $u; break; } }
+                                                                if (!$ngsm_u || empty($ngsm_u->roles)) { continue; }
+                                                                if (in_array($ngsm_u->roles[0], ['administrator']) || (in_array($ngsm_u->roles[0], $auth_roles) && $netgsm_auth_roles_control == 1)) {
+                                                                    if ($ngsm_u->user_login == 'admin') { continue; } ?>
+                                                                    <option value="<?php echo esc_attr($userID); ?>"><?php echo esc_html($ngsm_u->display_name) . ' (' . esc_html($role_list[$ngsm_u->roles[0]]) . ')'; ?></option>
+                                                            <?php }
+                                                            } ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="vx-transfer-actions">
+                                                    <button type="button" class="vx-btn vx-btn-primary vx-btn-sm" id="netgsm_add_user_btn">İzin Ver <i class="ti ti-arrow-right"></i></button>
+                                                    <button type="button" class="vx-btn vx-btn-outline-error vx-btn-sm" id="netgsm_delete_user_btn"><i class="ti ti-arrow-left"></i> Kaldır</button>
+                                                </div>
+                                                <div class="vx-note vx-note-neutral">
+                                                    <ul>
+                                                        <li><b>admin</b> kullanıcısı, administrator olduğu sürece her durumda <b>tam yetkilidir</b>.</li>
+                                                        <li>Ekleme/çıkarma sonrası değişiklikleri kaydetmelisiniz.</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Telefon alanında 0 zorunluluğu -->
+                                        <div class="vx-wc-item">
+                                            <div class="vx-toggle-row" style="border-bottom:none;padding:0;">
+                                                <div class="vx-toggle-row-left">
+                                                    <i class="ti ti-phone-check"></i>
+                                                    <div>
+                                                        <p class="vx-toggle-row-label">Yeni üyeliklerde telefon alanında 0 zorunluluğu</p>
+                                                        <p class="vx-toggle-row-desc">Telefon numarasının başında 0 girilmesi zorunlu olur.</p>
+                                                    </div>
+                                                </div>
+                                                <label class="vx-switch">
+                                                    <input name="netgsm_phonenumber_zero1" id="netgsm_switch145" type="checkbox" value="1" onclick="netgsm_field_onoff('145')" <?php checked($ngsm_zero_on); ?>>
+                                                    <span class="vx-switch-track"></span>
+                                                </label>
+                                            </div>
+                                            <div class="vx-sec-reveal" id="netgsm_field145" style="<?php echo $ngsm_zero_on ? '' : 'display:none;'; ?>">
+                                                <p class="vx-inline-warning" style="margin:0;">Yeni üyelik özelliklerinde eklenen telefon alanlarında, telefon numarasının başında 0 (sıfır) girilmesi zorunlu olur.</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Licence Key -->
+                                        <div class="vx-wc-item">
+                                            <div class="vx-toggle-row" style="border-bottom:none;padding:0;">
+                                                <div class="vx-toggle-row-left">
+                                                    <i class="ti ti-key"></i>
+                                                    <div>
+                                                        <p class="vx-toggle-row-label">Licence Key bilgisini siparişin meta anahtarına kaydet</p>
+                                                        <p class="vx-toggle-row-desc">Licence Manager eklentisiyle oluşturulan anahtarlar siparişe eklenir.</p>
+                                                    </div>
+                                                </div>
+                                                <label class="vx-switch">
+                                                    <input name="netgsm_licence_key_to_meta" id="netgsm_switch146" type="checkbox" value="1" onclick="netgsm_field_onoff('146')" <?php checked($ngsm_lic_on); ?>>
+                                                    <span class="vx-switch-track"></span>
+                                                </label>
+                                            </div>
+                                            <div class="vx-sec-reveal" id="netgsm_field146" style="<?php echo $ngsm_lic_on ? '' : 'display:none;'; ?>">
+                                                <p class="vx-inline-warning" style="margin:0;">Licence Manager eklentisi ile oluşturulan lisans anahtarları, siparişin meta anahtarlarına eklenir.</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="vx-note vx-note-error" style="margin-top:18px;">
+                                            Rollerin yetki kapasiteleri Netgsm eklentisi üzerinden ayarlanamamaktadır. Bunun için WordPress rol yetkilerini yönetme konusunu araştırabilirsiniz.
+                                        </div>
+
+                                        <div style="display:flex;justify-content:flex-end;margin-top:22px;">
+                                            <button type="submit" class="vx-btn vx-btn-primary" id="login_save6" name="login_save6" onclick="login();"><i class="ti ti-device-floppy"></i> Yetkilendirmeyi Kaydet</button>
+                                        </div>
+                                        </div><!-- /#ngsm_auth_body -->
                                     </div>
-                                    <script>
-                                        function kontrolEt(selectedElement) {
-                                            const netgsm_brandcode_control = <?php echo (int) ($netgsm_brandcode_control ?? 0); ?>;
-                                            const netgsm_iys_control = "<?php echo esc_js(trim($netgsm_iys_control)); ?>";
-                                            const uyari = document.getElementById("iys_uyari_mesaji");
-                                            const selectedValue = selectedElement.value;
-                                            if (netgsm_brandcode_control == 0 && (selectedValue == "1" || selectedValue == "2")) {
-                                                uyari.innerText = "Marka kodunuz olmadığı için bu mesaj türünü seçemezsiniz. IYS bölümünden brandcode ekleyiniz.";
-                                                uyari.style.display = "block";
-                                                selectedElement.value = netgsm_iys_control;
-                                            } else {
-                                                uyari.innerText = "";
-                                                uyari.style.display = "none";
+                                    <?php endif; ?>
+
+                                </div>
+                                <script>
+                                    // Yetkilendirme kartini goz ikonuyla ac/kapa. Yalnizca gorunumu etkiler,
+                                    // hicbir ayar degeri degistirmez; varsayilan kapali.
+                                    function ngsmToggleAuthCard() {
+                                        var body = document.getElementById('ngsm_auth_body');
+                                        var icon = document.getElementById('ngsm_auth_eye_icon');
+                                        if (!body || !icon) { return; }
+                                        var acik = body.style.display !== 'none';
+                                        body.style.display = acik ? 'none' : '';
+                                        icon.className = acik ? 'ti ti-eye-off' : 'ti ti-eye';
+                                    }
+
+                                    // Yetkilendirme transfer listeleri — eskiden pages/settings.php icindeydi.
+                                    // Secili ogeleri iki liste arasinda tasir ve gizli alani (virgulle
+                                    // ayrilmis deger) gunceller; kaydetme bu gizli alan uzerinden yurur.
+                                    function ngsmTransfer(fromId, toId, hiddenId) {
+                                        var $from = jQuery('#' + fromId), $to = jQuery('#' + toId);
+                                        if ($from.find('option:selected').length === 0) { return; }
+                                        $from.find('option:selected').removeAttr('selected').appendTo($to);
+                                        var values = [];
+                                        $to.find('option').each(function () { values.push(jQuery(this).val()); });
+                                        jQuery('#' + hiddenId).val(values.join(','));
+                                    }
+
+                                    jQuery(function () {
+                                        jQuery('#netgsm_add_role_btn').on('click', function () {
+                                            ngsmTransfer('netgsm_auth_roles', 'netgsm_auth_roles_selected', 'netgsm_auth_roles_text');
+                                        });
+                                        jQuery('#netgsm_delete_role_btn').on('click', function () {
+                                            ngsmTransfer('netgsm_auth_roles_selected', 'netgsm_auth_roles', 'netgsm_auth_roles_text');
+                                        });
+                                        jQuery('#netgsm_add_user_btn').on('click', function () {
+                                            ngsmTransfer('netgsm_auth_users', 'netgsm_auth_users_selected', 'netgsm_auth_users_text');
+                                        });
+                                        jQuery('#netgsm_delete_user_btn').on('click', function () {
+                                            ngsmTransfer('netgsm_auth_users_selected', 'netgsm_auth_users', 'netgsm_auth_users_text');
+                                        });
+                                    });
+
+                                    function ngsmBuildBadgeHtml(cevap) {
+                                        var parts = [];
+                                        if (cevap.mesaj) parts.push('<i class="fa ' + cevap.icon + '"></i> ' + String(cevap.mesaj).replace(/:$/, ''));
+                                        if (cevap.mesajPaket) parts.push(String(cevap.mesajPaket).replace(/:$/, ''));
+                                        if (cevap.mesajKredi) parts.push(String(cevap.mesajKredi).replace(/:$/, ''));
+                                        return parts.join(' · ');
+                                    }
+
+                                    function verifyAccountAjax() {
+                                        var btn = document.getElementById('login_save');
+                                        var user = document.getElementById('netgsm_user').value;
+                                        var pass = document.getElementById('netgsm_pass').value;
+                                        var original = btn.innerHTML;
+                                        btn.disabled = true;
+                                        btn.innerHTML = 'Doğrulanıyor...';
+
+                                        jQuery.post(ajaxurl, {
+                                            action: 'netgsm_verify_account',
+                                            _wpnonce: '<?php echo esc_js(wp_create_nonce('netgsm_verify_account')); ?>',
+                                            netgsm_user: user,
+                                            netgsm_pass: pass
+                                        }).done(function (res) {
+                                            btn.disabled = false;
+                                            btn.innerHTML = original;
+                                            if (!res || !res.success) {
+                                                swal('Hata', 'İstek başarısız oldu.', 'error');
+                                                return;
                                             }
+                                            var cevap = res.data;
+                                            var connected = (cevap.btnkontrol === 'enabled');
+
+                                            jQuery('#bakiye').html(ngsmBuildBadgeHtml(cevap));
+
+                                            var logoutBtn = document.getElementById('ngsm-logout-btn');
+                                            if (logoutBtn) logoutBtn.style.display = connected ? '' : 'none';
+
+                                            var strip = document.getElementById('ngsm-connect-strip');
+                                            if (strip) {
+                                                strip.style.display = connected ? 'flex' : 'none';
+                                                if (connected) {
+                                                    jQuery('#ngsm-connect-user').text(user + ' · Netgsm API bağlantısı aktif');
+                                                }
+                                            }
+
+                                            var msg = (cevap.mesaj || '').replace(/:$/, '');
+                                            if (connected) {
+                                                swal('Doğrulandı', msg || 'Hesap bağlantısı doğrulandı.', 'success');
+                                            } else {
+                                                swal('Doğrulanamadı', msg || 'Bilgileri kontrol edin.', 'error');
+                                            }
+                                        }).fail(function () {
+                                            btn.disabled = false;
+                                            btn.innerHTML = original;
+                                            swal('Hata', 'Sunucuya ulaşılamadı.', 'error');
+                                        });
+                                    }
+
+                                    function saveSmsSettingsAjax() {
+                                        var btn = document.getElementById('login_save2');
+                                        var original = btn.innerHTML;
+                                        btn.disabled = true;
+                                        btn.innerHTML = 'Kaydediliyor...';
+
+                                        jQuery.post(ajaxurl, {
+                                            action: 'netgsm_save_sms_settings',
+                                            _wpnonce: '<?php echo esc_js(wp_create_nonce('netgsm_save_sms_settings')); ?>',
+                                            netgsm_input_smstitle: document.getElementById('netgsm_input_smstitle').value,
+                                            netgsm_trChar: document.getElementById('input-trChar').value,
+                                            netgsm_iys_control: document.getElementById('input-iysControl').value,
+                                            netgsm_status: document.getElementById('input-status').value
+                                        }).done(function (res) {
+                                            btn.disabled = false;
+                                            btn.innerHTML = original;
+                                            if (!res || !res.success) {
+                                                swal('Hata', (res && res.data && res.data.mesaj) || 'Kaydetme başarısız oldu.', 'error');
+                                                return;
+                                            }
+                                            swal('Kaydedildi', res.data.mesaj || 'SMS ayarları kaydedildi.', 'success');
+                                        }).fail(function () {
+                                            btn.disabled = false;
+                                            btn.innerHTML = original;
+                                            swal('Hata', 'Sunucuya ulaşılamadı.', 'error');
+                                        });
+                                    }
+
+                                    function kontrolEt(selectedElement) {
+                                        const netgsm_brandcode_control = <?php echo (int) ($netgsm_brandcode_control ?? 0); ?>;
+                                        const netgsm_iys_control = "<?php echo esc_js(trim($netgsm_iys_control)); ?>";
+                                        const uyari = document.getElementById("iys_uyari_mesaji");
+                                        const selectedValue = selectedElement.value;
+                                        if (netgsm_brandcode_control == 0 && (selectedValue == "1" || selectedValue == "2")) {
+                                            uyari.innerText = "Marka kodunuz olmadığı için bu mesaj türünü seçemezsiniz. IYS bölümünden brandcode ekleyiniz.";
+                                            uyari.style.display = "block";
+                                            selectedElement.value = netgsm_iys_control;
+                                        } else {
+                                            uyari.innerText = "";
+                                            uyari.style.display = "none";
                                         }
-                                    </script>
-
-                                </div>
-
-
-                                <hr>
-                                <hr>
-
-                                <div class="form-group">
-                                    <?php $netgsm_status = esc_html(get_option("netgsm_status")); ?>
-                                    <?php if ($cevap->btnkontrol != "enabled") {
-                                        $netgsm_status = 0;
-                                    } ?>
-                                    <label class="col-sm-2 control-label" for="input-status" style="color: <?php if (isset($netgsm_status) && !empty($netgsm_status) && $netgsm_status) { ?>#2ECC71<?php } else { ?>#E74C3C<?php } ?>;">Eklenti
-                                        Durumu : </label>
-                                    <div class="col-sm-10">
-                                        <div class="input-group">
-                                            <div class="input-group-addon">
-                                                <i class="fa fa-power-off" style="color: <?php if (isset($netgsm_status) && !empty($netgsm_status) && $netgsm_status) { ?>#2ECC71<?php } else { ?>#E74C3C<?php } ?>;"></i>
-                                            </div>
-                                            <select name="netgsm_status" id="input-status" class="form-control" style="height: 35px;">
-                                                <?php if ($netgsm_status) { ?>
-                                                    <option value="1" selected>Açık</option>
-                                                    <option value="0">Kapalı</option>
-                                                <?php } else { ?>
-                                                    <option value="1">Açık</option>
-                                                    <option value="0" selected>Kapalı</option>
-                                                <?php } ?>
-                                            </select>
-                                        </div>
-                                        <?php if ($netgsm_status) {
-                                        } else { ?>
-                                            <small>*<i> Modül kapalıyken programlanan sms gönderimleri iptal
-                                                    olur.</i></small><?php } ?>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-sm-2"></div>
-                                    <div class="col-sm-10 text-right">
-                                        <button class="btn btn-primary" id="login_save2" name="login_save2" onclick="login();"><i class="fa fa-folder"></i> Değişiklikleri
-                                            Kaydet
-                                        </button>
-                                    </div>
-                                </div>
+                                    }
+                                </script>
                             </div>
                             <div class="tab-pane container-fluid" id="sms">
-                                <hr>
-                                <div class="form-group">
-                                    <!--  Yeni üye olunca, belirlenen numaralara sms göndermek -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_newuser_to_admin_no"><i class="fa fa-certificate" style="color: #E74C3C;"></i>
-                                                    <i class="fa fa-certificate" style="color: #BB77AE;"></i> Yeni
-                                                    üye olunca, belirlenen numaralara SMS gönderilsin:</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_newuser_to_admin_control" id="netgsm_switch1" type="checkbox" onchange="netgsm_field_onoff(1)" value="1" <?php if ((get_option('netgsm_newuser_to_admin_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field1" style="<?php if ((get_option('netgsm_newuser_to_admin_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-phone" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <input name="netgsm_newuser_to_admin_no" id="netgsm_newuser_to_admin_no" type="text" class="form-control" placeholder="Sms gönderilecek numaraları giriniz. Örn: 05xxXXXxxXX,05xxXXXxxXX" value="<?= esc_html(get_option("netgsm_newuser_to_admin_no")) ?>">
-                                                    </div>
-                                                    <p id="vars_newuser_to_admin_no"></p>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <div class="input-group-addon hoverlay" onclick="settingOpen('conf1')">
-                                                            <a href="javascript:void(0)">
-                                                                <i class="fa fa-cogs" id="conf1_color" style="color: <?php if (esc_textarea(get_option("netgsm_newuser_to_admin_json")) != '') {
-                                                                                                                            echo '#17A2B8';
-                                                                                                                        } else {
-                                                                                                                            echo '#2B2B2B';
-                                                                                                                        } ?>;"></i>
-                                                            </a>
-                                                        </div>
-                                                        <textarea name="netgsm_newuser_to_admin_text" id="netgsm_textarea1" class="form-control" placeholder="Örnek : Sayın yetkili, [uye_adi] [uye_soyadi] kullanıcı sisteme kaydoldu. Bilgileri : tel : [uye_telefonu] eposta: [uye_epostasi]"><?= esc_textarea(get_option("netgsm_newuser_to_admin_text")) ?></textarea>
-                                                        <input type="hidden" id="netgsm_newuser_to_admin_json" name="netgsm_newuser_to_admin_json" class="form-control" value="<?= esc_html(get_option("netgsm_newuser_to_admin_json")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_tags_text1" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <div class="vx-page-header">
+                                    <div class="vx-page-header-icon"><i class="ti ti-bell"></i></div>
+                                    <div class="vx-page-header-text">
+                                        <h2 class="vx-page-header-title">WooCommerce SMS</h2>
+                                        <p class="vx-page-header-subtitle">Sipariş ve üyelik olaylarında otomatik SMS</p>
                                     </div>
                                 </div>
-
-                                <div class="form-group"> <!--  Yeni üye olunca,yeni üyeye sms  -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_newuser_to_customer_no"><i class="fa fa-certificate" style="color: #E74C3C;"></i>
-                                                    <i class="fa fa-certificate" style="color: #BB77AE;"></i> Yeni
-                                                    üye olunca, müşteriye SMS gönderilsin:</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_newuser_to_customer_control" id="netgsm_switch2" type="checkbox" onchange="netgsm_field_onoff(2)" value="1" <?php if ((get_option('netgsm_newuser_to_customer_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field2" style="<?php if ((get_option('netgsm_newuser_to_customer_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <div class="input-group-addon hoverlay" onclick="settingOpen('conf2')">
-                                                            <a href="javascript:void(0)">
-                                                                <i class="fa fa-cogs" id="conf2_color" style="color: <?php if (esc_textarea(get_option("netgsm_newuser_to_customer_json")) != '') {
-                                                                                                                            echo '#17A2B8';
-                                                                                                                        } else {
-                                                                                                                            echo '#2B2B2B';
-                                                                                                                        } ?>;"></i>
-                                                            </a>
-                                                        </div>
-                                                        <textarea name="netgsm_newuser_to_customer_text" id="netgsm_textarea2" class="form-control" placeholder="Örnek :Sayın [uye_adi] [uye_soyadi], sitemize hoşgeldiniz! [uye_telefonu] telefon numarası ve [uye_epostasi] ile kayıt oldunuz. Keyifli Alışverişler !"><?= esc_textarea(get_option("netgsm_newuser_to_customer_text")) ?></textarea>
-                                                        <input type="hidden" id="netgsm_newuser_to_customer_json" name="netgsm_newuser_to_customer_json" class="form-control" value="<?= esc_html(get_option("netgsm_newuser_to_customer_json")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_tags_text2" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
+                                <?php
+                                // Bu 10 bildirimin çoğu aynı şekle sahip: switch + (opsiyonel telefon alanı) +
+                                // mesaj textarea'sı + değişken chip listesi + "Ek Ayarlar" dişli ikonu. Tekrarı
+                                // önlemek için ortak bir render fonksiyonu kullanılıyor. Sipariş durumu (id 5)
+                                // ve sepette unutulan ürün (id 13) farklı alanlara sahip oldukları için ayrı
+                                // yazılıyor. Her alanın name/id/onclick'i orijinaliyle birebir aynı — chip
+                                // doldurma (field1..field23 + varfill), toggle (netgsm_field_onoff) ve "Ek
+                                // Ayarlar" modalı (settingOpen) JS mekanizmalarının hiçbiri değişmedi.
+                                function ngsm_render_wc_toggle($n, $icon, $label, $desc, $controlKey, $phoneName, $textName, $jsonName, $conf, $placeholder)
+                                {
+                                    $checked = (get_option($controlKey) == 1);
+                                    $hasJson = (esc_textarea(get_option($jsonName)) != '');
+                                ?>
+                                    <div class="vx-wc-item">
+                                        <div class="vx-toggle-row" style="border-bottom:none;padding:0;">
+                                            <div class="vx-toggle-row-left">
+                                                <i class="ti ti-<?= esc_attr($icon) ?>"></i>
+                                                <div>
+                                                    <p class="vx-toggle-row-label"><?= esc_html($label) ?></p>
+                                                    <p class="vx-toggle-row-desc"><?= esc_html($desc) ?></p>
                                                 </div>
                                             </div>
+                                            <label class="vx-switch">
+                                                <input type="checkbox" name="<?= esc_attr($controlKey) ?>" id="netgsm_switch<?= esc_attr($n) ?>" onchange="netgsm_field_onoff(<?= (int) $n ?>)" value="1" <?php checked($checked); ?>>
+                                                <span class="vx-switch-track"></span>
+                                            </label>
+                                        </div>
+                                        <div class="vx-wc-reveal" id="netgsm_field<?= esc_attr($n) ?>" style="<?php echo $checked ? '' : 'display:none;'; ?>">
+                                            <?php if ($phoneName) : ?>
+                                                <input name="<?= esc_attr($phoneName) ?>" id="<?= esc_attr($phoneName) ?>" type="text" class="vx-input" placeholder="Sms gönderilecek numaraları giriniz. Örn: 05xxXXXxxXX,05xxXXXxxXX" value="<?= esc_attr(get_option($phoneName)) ?>">
+                                            <?php endif; ?>
+                                            <div style="display:flex;align-items:flex-start;gap:8px;">
+                                                <textarea name="<?= esc_attr($textName) ?>" id="netgsm_textarea<?= esc_attr($n) ?>" rows="2" class="vx-textarea" style="flex:1;" placeholder="<?= esc_attr($placeholder) ?>"><?= esc_textarea(get_option($textName)) ?></textarea>
+                                                <button type="button" class="vx-gear-btn" onclick="settingOpen('<?= esc_attr($conf) ?>')" title="Ek Ayarlar">
+                                                    <i class="ti ti-adjustments-horizontal" id="<?= esc_attr($conf) ?>_color" style="color:<?php echo $hasJson ? '#17A2B8' : 'var(--text-disabled)'; ?>;"></i>
+                                                </button>
+                                                <input type="hidden" id="<?= esc_attr($jsonName) ?>" name="<?= esc_attr($jsonName) ?>" value="<?= esc_attr(get_option($jsonName)) ?>">
+                                            </div>
+                                            <p id="netgsm_tags_text<?= esc_attr($n) ?>" class="vx-chip-list">Kullanabileceğiniz değişkenler:</p>
                                         </div>
                                     </div>
-                                </div>
+                                <?php
+                                }
+                                ?>
+                                <div class="vx-screen">
+                                    <div class="vx-secbox">
+                                        <div class="vx-sec-header">
+                                            <i class="ti ti-bell vx-sec-icon"></i>
+                                            <h3>Otomatik SMS Bildirimleri</h3>
+                                        </div>
+                                        <p class="vx-sec-desc">Sipariş ve üyelik olaylarında hangi durumlarda otomatik SMS gönderileceğini seçin.</p>
+                                        <hr class="vx-sec-rule">
+                                        <?php
+                                        ngsm_render_wc_toggle(1, 'user-plus', 'Yeni üye olunca belirlenen numaralara SMS', 'Yeni üye kaydında belirlediğiniz numaralara bildirim gider.', 'netgsm_newuser_to_admin_control', 'netgsm_newuser_to_admin_no', 'netgsm_newuser_to_admin_text', 'netgsm_newuser_to_admin_json', 'conf1', 'Örnek : Sayın yetkili, [uye_adi] [uye_soyadi] kullanıcı sisteme kaydoldu. Bilgileri : tel : [uye_telefonu] eposta: [uye_epostasi]');
+                                        ngsm_render_wc_toggle(2, 'user-check', 'Yeni üye olunca müşteriye SMS', 'Kaydolan müşteriye hoş geldin mesajı gönderilir.', 'netgsm_newuser_to_customer_control', null, 'netgsm_newuser_to_customer_text', 'netgsm_newuser_to_customer_json', 'conf2', "Örnek :Sayın [uye_adi] [uye_soyadi], sitemize hoşgeldiniz! [uye_telefonu] telefon numarası ve [uye_epostasi] ile kayıt oldunuz. Keyifli Alışverişler !");
+                                        ?>
 
                                 <script>
                                     var settings = {
@@ -649,99 +894,10 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                 </script>
 
 
-                                <div class="form-group"> <!--  yeni sipariş geldiğinde belirlenen numaralara sms -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_neworder_to_admin_no"><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Yeni sipariş geldiğinde, belirlenen numaralara SMS gönderilsin:</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_neworder_to_admin_control" id="netgsm_switch3" type="checkbox" onchange="netgsm_field_onoff(3)" value="1" <?php if ((get_option('netgsm_neworder_to_admin_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field3" style="<?php if ((get_option('netgsm_neworder_to_admin_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-phone" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <input name="netgsm_neworder_to_admin_no" id="netgsm_neworder_to_admin_no" type="text" class="form-control" placeholder="Sms gönderilecek numaraları giriniz. Örn: 05xxXXXxxXX,05xxXXXxxXX" value="<?= esc_html(get_option("netgsm_neworder_to_admin_no")) ?>">
-                                                    </div>
-                                                    <p id="vars_neworder_to_admin_no"></p>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <div class="input-group-addon hoverlay" onclick="settingOpen('conf3')">
-                                                            <a href="javascript:void(0)">
-                                                                <i class="fa fa-cogs" id="conf3_color" style="color: <?php if (esc_textarea(get_option("netgsm_neworder_to_admin_json")) != '') {
-                                                                                                                            echo '#17A2B8';
-                                                                                                                        } else {
-                                                                                                                            echo '#2B2B2B';
-                                                                                                                        } ?>;"></i>
-                                                            </a>
-                                                        </div>
-                                                        <textarea name="netgsm_neworder_to_admin_text" id="netgsm_textarea3" class="form-control" placeholder="Örnek : Sayın Yönetici, [siparis_no] no'lu bir sipariş aldınız. Ürün bilgileri : [urun_adlari]-[urun_kodlari]-[urun_adetleri]"><?= esc_textarea(get_option("netgsm_neworder_to_admin_text")) ?></textarea>
-                                                        <input type="hidden" id="netgsm_neworder_to_admin_json" name="netgsm_neworder_to_admin_json" class="form-control" value="<?= esc_html(get_option("netgsm_neworder_to_admin_json")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_tags_text3" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-group"> <!--  Yeni sipariş olunca müşteriye sms -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_neworder_to_customer_no"><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Yeni sipariş geldiğinde, müşteriye bilgilendirme SMS'i
-                                                    gönderilsin:</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_neworder_to_customer_control" id="netgsm_switch4" type="checkbox" onchange="netgsm_field_onoff(4)" value="1" <?php if ((get_option('netgsm_neworder_to_customer_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field4" style="<?php if ((get_option('netgsm_neworder_to_customer_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <div class="input-group-addon hoverlay" onclick="settingOpen('conf4')">
-                                                            <a href="javascript:void(0)">
-                                                                <i class="fa fa-cogs" id="conf4_color" style="color: <?php if (esc_textarea(get_option("netgsm_neworder_to_customer_json")) != '') {
-                                                                                                                            echo '#17A2B8';
-                                                                                                                        } else {
-                                                                                                                            echo '#2B2B2B';
-                                                                                                                        } ?>;"></i>
-                                                            </a>
-                                                        </div>
-                                                        <textarea name="netgsm_neworder_to_customer_text" id="netgsm_textarea4" class="form-control" placeholder="Örnek : [siparis_no]' nolu siparişiniz başarıyla oluşturulmuştur."><?= esc_textarea(get_option("netgsm_neworder_to_customer_text")) ?></textarea>
-                                                        <input type="hidden" id="netgsm_neworder_to_customer_json" name="netgsm_neworder_to_customer_json" class="form-control" value="<?= esc_html(get_option("netgsm_neworder_to_customer_json")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_tags_text4" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <?php
+                                ngsm_render_wc_toggle(3, 'shopping-cart', 'Yeni sipariş geldiğinde belirlenen numaralara SMS', 'Yeni sipariş bildirimi ekibinize iletilir.', 'netgsm_neworder_to_admin_control', 'netgsm_neworder_to_admin_no', 'netgsm_neworder_to_admin_text', 'netgsm_neworder_to_admin_json', 'conf3', "Örnek : Sayın Yönetici, [siparis_no] no'lu bir sipariş aldınız. Ürün bilgileri : [urun_adlari]-[urun_kodlari]-[urun_adetleri]");
+                                ngsm_render_wc_toggle(4, 'receipt', "Yeni sipariş geldiğinde müşteriye bilgilendirme SMS'i", "Müşteriye 'siparişiniz alındı' bilgisi gönderilir.", 'netgsm_neworder_to_customer_control', null, 'netgsm_neworder_to_customer_text', 'netgsm_neworder_to_customer_json', 'conf4', "Örnek : [siparis_no]' nolu siparişiniz başarıyla oluşturulmuştur.");
+                                ?>
 
 
 
@@ -758,729 +914,422 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                 }
                                 ?>
 
-                                <div class="form-group">
-                                    <!--  Sİpariş durumları değiştiğinde müşteriye sms gönderilsin. -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_neworder_to_admin_no"><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    <i class="fa fa-certificate" style="color: #34495E;"></i> Ürünün
-                                                    sipariş durumu değiştiğinde müşteriye SMS gönderilsin:</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_orderstatus_change_customer_control" id="netgsm_switch5" type="checkbox" onchange="netgsm_field_onoff(5)" value="1" <?php if ((get_option('netgsm_orderstatus_change_customer_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
+                                <div class="vx-wc-item">
+                                    <?php $ngsm_os5_checked = (get_option('netgsm_orderstatus_change_customer_control') == 1); ?>
+                                    <div class="vx-toggle-row" style="border-bottom:none;padding:0;">
+                                        <div class="vx-toggle-row-left">
+                                            <i class="ti ti-refresh"></i>
+                                            <div>
+                                                <p class="vx-toggle-row-label">Sipariş durumu değiştiğinde müşteriye SMS</p>
+                                                <p class="vx-toggle-row-desc">Durum her değiştiğinde müşteri otomatik bilgilendirilir.</p>
                                             </div>
                                         </div>
-                                        <div class="col-sm-9" id="netgsm_field5" style="<?php if ((get_option('netgsm_orderstatus_change_customer_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-
-                                                        <?php if (isset($actives[0])) {
-                                                        ?>
-                                                            <div class="input-group-addon" data-toggle="tooltip" data-placement="right" data-html="true" title="<b style='color: #2ECC71'>Aktif durumlar : </b><hr> <?= esc_attr(implode('<br>', $actives)) ?>">
-                                                                <i class="fa fa-check-square" style="color: #2ECC71;"></i>
-                                                            </div>
-
-                                                        <?php
-                                                        } else {
-                                                        ?>
-                                                            <div class="input-group-addon" data-toggle="tooltip" data-placement="right" data-html="true" title="Hiçbir durum aktifleştirilmemiş.">
-                                                                <i class="fa fa-times-circle" style="color: #E74C3C;"></i>
-                                                            </div>
-                                                        <?php
-                                                        } ?>
-
-
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-truck" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <div class="input-group-addon hoverlay" id="settings-btn-changed" onclick="">
-                                                            <a href="javascript:void(0)">
-                                                                <i class="fa fa-cogs" id="setting-btn_color" style="color:#2B2B2B;"></i>
-                                                            </a>
-                                                        </div>
-
-                                                        <select id="order_status" onchange="order_status_change(this.value)" class="form-control" style="height: 35px">
-                                                            <option value="" selected>Sipariş Durumu Seçiniz
-                                                            </option>
-                                                            <?php if (function_exists('wc_get_order_statuses')) {
-                                                                $order_statuses = wc_get_order_statuses();
-                                                                $arraykeys = array_keys($order_statuses);
-                                                                foreach ($arraykeys as $item) { ?>
-                                                                    <option value="<?= esc_attr($item) ?>"><?= esc_html($order_statuses[$item]) ?></option>
-
-                                                            <?php }
-                                                            } ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <span id="activeStatus" data=""></span>
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <?php if (isset($arraykeys)) {
-                                                        foreach ($arraykeys as $item) {
-                                                            $order_status_text = array($item => 'netgsm_order_status_text_' . $item);
-                                                    ?>
-                                                            <textarea style="display: none;" name="netgsm_order_status_text_<?= esc_attr($item) ?>" id="netgsm_order_status_text_<?= esc_attr($item) ?>" class="form-control order_status_text" placeholder="Örnek : Sayın [uye_adi] [uye_soyadi], [siparis_no] numaralı siparişinizin kargo durumu ... olarak değiştirilmiştir. "><?= esc_textarea(get_option($order_status_text[$item])); ?></textarea>
-                                                            <input type="hidden" id="netgsm_order_status_text_<?= esc_attr($item) ?>_json" name="netgsm_order_status_text_<?= esc_attr($item) ?>_json" class="form-control" value="<?= esc_attr(get_option("netgsm_order_status_text_" . $item . "_json")) ?>">
-
-                                                    <?php }
-                                                    } ?>
-                                                    <p id="netgsm_tags_text5" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i>
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'siparis_no')">
-                                                            [siparis_no]
-                                                        </mark>&nbsp;
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'uye_adi')">
-                                                            [uye_adi]
-                                                        </mark>&nbsp;
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'uye_soyadi')">
-                                                            [uye_soyadi]
-                                                        </mark>&nbsp;
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'uye_telefonu')">
-                                                            [uye_telefonu]
-                                                        </mark>&nbsp;
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'uye_epostasi')">
-                                                            [uye_epostasi]
-                                                        </mark>&nbsp;
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'kullanici_adi')">
-                                                            [kullanici_adi]
-                                                        </mark>&nbsp;
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'tarih')">
-                                                            [tarih]
-                                                        </mark>&nbsp;
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'saat')">
-                                                            [saat]
-                                                        </mark>&nbsp;
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'kargo_firmasi')">
-                                                            [kargo_firmasi]
-                                                        </mark>&nbsp;
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'takip_kodu')">
-                                                            [takip_kodu]
-                                                        </mark>&nbsp;
-                                                        <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'siparis_tutar')">
-                                                            [siparis_tutar]
-                                                        </mark>&nbsp;
-                                                        <i class="fa fa-certificate" style="color: #681947;"></i>
-                                                    </p>
-                                                </div>
-                                            </div>
+                                        <label class="vx-switch">
+                                            <input name="netgsm_orderstatus_change_customer_control" id="netgsm_switch5" type="checkbox" onchange="netgsm_field_onoff(5)" value="1" <?php checked($ngsm_os5_checked); ?>>
+                                            <span class="vx-switch-track"></span>
+                                        </label>
+                                    </div>
+                                    <div class="vx-wc-reveal" id="netgsm_field5" style="<?php echo $ngsm_os5_checked ? '' : 'display:none;'; ?>">
+                                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                            <?php if (isset($actives[0])) : ?>
+                                                <span data-toggle="tooltip" data-placement="right" data-html="true" title="<b style='color: #2ECC71'>Aktif durumlar : </b><hr> <?= esc_attr(implode('<br>', $actives)) ?>" style="color:var(--color-palette-success-main);font-size:18px;display:inline-flex;">
+                                                    <i class="ti ti-square-check"></i>
+                                                </span>
+                                            <?php else : ?>
+                                                <span data-toggle="tooltip" data-placement="right" data-html="true" title="Hiçbir durum aktifleştirilmemiş." style="color:var(--color-palette-error-main);font-size:18px;display:inline-flex;">
+                                                    <i class="ti ti-circle-x"></i>
+                                                </span>
+                                            <?php endif; ?>
+                                            <select id="order_status" onchange="order_status_change(this.value)" class="vx-select" style="max-width:320px;">
+                                                <option value="" selected>Sipariş Durumu Seçiniz</option>
+                                                <?php if (function_exists('wc_get_order_statuses')) {
+                                                    $order_statuses = wc_get_order_statuses();
+                                                    $arraykeys = array_keys($order_statuses);
+                                                    foreach ($arraykeys as $item) { ?>
+                                                        <option value="<?= esc_attr($item) ?>"><?= esc_html($order_statuses[$item]) ?></option>
+                                                <?php }
+                                                } ?>
+                                            </select>
+                                            <button type="button" class="vx-gear-btn" id="settings-btn-changed" onclick="" title="Ek Ayarlar">
+                                                <i class="ti ti-adjustments-horizontal" id="setting-btn_color" style="color:var(--text-disabled);"></i>
+                                            </button>
                                         </div>
+                                        <span id="activeStatus" data=""></span>
+                                        <?php if (isset($arraykeys)) {
+                                            foreach ($arraykeys as $item) {
+                                                $order_status_text = array($item => 'netgsm_order_status_text_' . $item);
+                                        ?>
+                                                <textarea style="display: none;" name="netgsm_order_status_text_<?= esc_attr($item) ?>" id="netgsm_order_status_text_<?= esc_attr($item) ?>" class="vx-textarea order_status_text" rows="2" placeholder="Örnek : Sayın [uye_adi] [uye_soyadi], [siparis_no] numaralı siparişinizin kargo durumu ... olarak değiştirilmiştir."><?= esc_textarea(get_option($order_status_text[$item])); ?></textarea>
+                                                <input type="hidden" id="netgsm_order_status_text_<?= esc_attr($item) ?>_json" name="netgsm_order_status_text_<?= esc_attr($item) ?>_json" value="<?= esc_attr(get_option("netgsm_order_status_text_" . $item . "_json")) ?>">
+                                        <?php }
+                                        } ?>
+                                        <p id="netgsm_tags_text5" class="vx-chip-list">Kullanabileceğiniz değişkenler:
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'siparis_no')">[siparis_no]</mark>
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'uye_adi')">[uye_adi]</mark>
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'uye_soyadi')">[uye_soyadi]</mark>
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'uye_telefonu')">[uye_telefonu]</mark>
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'uye_epostasi')">[uye_epostasi]</mark>
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'kullanici_adi')">[kullanici_adi]</mark>
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'tarih')">[tarih]</mark>
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'saat')">[saat]</mark>
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'kargo_firmasi')">[kargo_firmasi]</mark>
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'takip_kodu')">[takip_kodu]</mark>
+                                            <mark onclick="varfill('netgsm_order_status_text_'+jQuery('#activeStatus').attr('data'), 'siparis_tutar')">[siparis_tutar]</mark>
+                                        </p>
                                     </div>
                                 </div>
 
 
-                                <div class="form-group"> <!--  Yeni özel not eklenince müşteriye sms -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for=""><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Siparişe yeni <span style="color: #2ECC71">özel not</span> eklendiğinde müşteriye SMS gönderilsin:</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_newnote1_to_customer_control" id="netgsm_switch11" type="checkbox" onchange="netgsm_field_onoff(11)" value="1" <?php if ((get_option('netgsm_newnote1_to_customer_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field11" style="<?php if ((get_option('netgsm_newnote1_to_customer_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <div class="input-group-addon hoverlay" onclick="settingOpen('conf11')">
-                                                            <a href="javascript:void(0)">
-                                                                <i class="fa fa-cogs" id="conf11_color" style="color: <?php if (esc_textarea(get_option("netgsm_newnote1_to_customer_json")) != '') {
-                                                                                                                            echo '#17A2B8';
-                                                                                                                        } else {
-                                                                                                                            echo '#2B2B2B';
-                                                                                                                        } ?>;"></i>
-                                                            </a>
-                                                        </div>
-                                                        <textarea name="netgsm_newnote1_to_customer_text" id="netgsm_textarea11" class="form-control" placeholder="Örnek : [siparis_no]' nolu siparişinize yeni not eklendi : [not]"><?= esc_textarea(get_option("netgsm_newnote1_to_customer_text")) ?></textarea>
-                                                        <input type="hidden" id="netgsm_newnote1_to_customer_json" name="netgsm_newnote1_to_customer_json" class="form-control" value="<?= esc_html(get_option("netgsm_newnote1_to_customer_json")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_tags_text11" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
-                                                </div>
+                                <?php
+                                ngsm_render_wc_toggle(11, 'note', 'Siparişe özel not eklendiğinde müşteriye SMS', 'Eklenen özel not müşteriye SMS ile iletilir.', 'netgsm_newnote1_to_customer_control', null, 'netgsm_newnote1_to_customer_text', 'netgsm_newnote1_to_customer_json', 'conf11', "Örnek : [siparis_no]' nolu siparişinize yeni not eklendi : [not]");
+                                ngsm_render_wc_toggle(12, 'message-2', 'Siparişe müşteri notu eklendiğinde müşteriye SMS', 'Müşteri notu eklendiğinde müşteriye bildirim gider.', 'netgsm_newnote2_to_customer_control', null, 'netgsm_newnote2_to_customer_text', 'netgsm_newnote2_to_customer_json', 'conf12', "Örnek : [siparis_no]' nolu siparişinize yeni not eklendi : [not]");
+                                ?>
+
+                                <?php
+                                ngsm_render_wc_toggle(6, 'ban', 'Sipariş iptal edildiğinde bilgilendir', 'İptalde belirlediğiniz numaraya SMS gönderilir.', 'netgsm_order_refund_to_admin_control', 'netgsm_order_refund_to_admin_no', 'netgsm_order_refund_to_admin_text', 'netgsm_order_refund_to_admin_json', 'conf5', "Sayın yönetici, [uye_adi][uye_soyadi] kullanıcısı, [urun] ürününü '[iade_nedeni]' nedeninden dolayı iptal etmiştir.");
+                                ngsm_render_wc_toggle(8, 'package', 'Ürün stoğa girince bekleme listesine SMS (WC Waitlist)', 'Stoğa giren ürün için bekleyenler bilgilendirilir.', 'netgsm_product_waitlist1_control', null, 'netgsm_product_waitlist1_text', 'netgsm_product_waitlist1_json', 'conf6', 'Sayın [uye_adi][uye_soyadi], [urun_adi] ürünü tekrar stoğa girmiştir. Bilginize.');
+                                ?>
+
+                                <?php $ngsm_ac13_checked = (get_option('netgsm_abandoned_card_sms_admin_control') == 1); ?>
+                                <div class="vx-wc-item">
+                                    <div class="vx-toggle-row" style="border-bottom:none;padding:0;">
+                                        <div class="vx-toggle-row-left">
+                                            <i class="ti ti-shopping-cart-off"></i>
+                                            <div>
+                                                <p class="vx-toggle-row-label">Sepette ürün unutulduğunda müşteriye SMS</p>
+                                                <p class="vx-toggle-row-desc">Sepette unutulan ürün için hatırlatma gönderilir.</p>
                                             </div>
                                         </div>
+                                        <label class="vx-switch">
+                                            <input name="netgsm_abandoned_card_sms_admin_control" id="netgsm_switch13" type="checkbox" onchange="netgsm_field_onoff(13)" value="1" <?php checked($ngsm_ac13_checked); ?>>
+                                            <span class="vx-switch-track"></span>
+                                        </label>
+                                    </div>
+                                    <div class="vx-wc-reveal" id="netgsm_field13" style="<?php echo $ngsm_ac13_checked ? '' : 'display:none;'; ?>">
+                                        <div class="vx-grid-2">
+                                            <div class="vx-field">
+                                                <label for="netgsm_abandoned_cart_periyod">Sepette bekleme süresi (saat)</label>
+                                                <input name="netgsm_abandoned_cart_periyod" id="netgsm_abandoned_cart_periyod" type="number" class="vx-input" placeholder="Örn: 5 (varsayılan 24 saat)" value="<?= esc_attr(get_option("netgsm_abandoned_cart_periyod")) ?>">
+                                            </div>
+                                            <div class="vx-field">
+                                                <label for="netgsm_abandoned_cart_smslimit">Periyotta gönderilecek toplam SMS limiti</label>
+                                                <input name="netgsm_abandoned_cart_smslimit" id="netgsm_abandoned_cart_smslimit" type="number" class="vx-input" placeholder="Örn: 1" value="<?= esc_attr(get_option("netgsm_abandoned_cart_smslimit")) ?>">
+                                            </div>
+                                        </div>
+                                        <textarea name="netgsm_abandoned_cart_to_admin_text" id="netgsm_textarea13" rows="2" class="vx-textarea" placeholder="Merhaba [uye_adi][uye_soyadi] Sepetinizde ürün kaldı! Fırsat bitmeden hemen satın alın. Stoklar hızla tükeniyor!"><?= esc_textarea(get_option("netgsm_abandoned_cart_to_admin_text")) ?></textarea>
+                                        <input type="hidden" id="netgsm_abandoned_cart_to_admin_json" name="netgsm_abandoned_cart_to_admin_json" value="<?= esc_attr(get_option("netgsm_abandoned_cart_to_admin_json")) ?>">
+                                        <p id="netgsm_tags_text13" class="vx-chip-list">Kullanabileceğiniz değişkenler:</p>
                                     </div>
                                 </div>
-
-                                <div class="form-group"> <!--  Yeni özel not eklenince müşteriye sms -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for=""><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Siparişe yeni <span style="color: #2ECC71">müşteri notu</span> eklendiğinde müşteriye SMS gönderilsin:</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_newnote2_to_customer_control" id="netgsm_switch12" type="checkbox" onchange="netgsm_field_onoff(12)" value="1" <?php if ((get_option('netgsm_newnote2_to_customer_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field12" style="<?php if ((get_option('netgsm_newnote2_to_customer_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <div class="input-group-addon hoverlay" onclick="settingOpen('conf12')">
-                                                            <a href="javascript:void(0)">
-                                                                <i class="fa fa-cogs" id="conf12_color" style="color: <?php if (esc_textarea(get_option("netgsm_newnote2_to_customer_json")) != '') {
-                                                                                                                            echo '#17A2B8';
-                                                                                                                        } else {
-                                                                                                                            echo '#2B2B2B';
-                                                                                                                        } ?>;"></i>
-                                                            </a>
-                                                        </div>
-                                                        <textarea name="netgsm_newnote2_to_customer_text" id="netgsm_textarea12" class="form-control" placeholder="Örnek : [siparis_no]' nolu siparişinize yeni not eklendi : [not]"><?= esc_textarea(get_option("netgsm_newnote2_to_customer_text")) ?></textarea>
-                                                        <input type="hidden" id="netgsm_newnote2_to_customer_json" name="netgsm_newnote2_to_customer_json" class="form-control" value="<?= esc_html(get_option("netgsm_newnote2_to_customer_json")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_tags_text12" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <!--  Sipariş iptal edildiğinde belirlediğim numaralı sms ile bilgilendir -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_neworder_to_admin_no"><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Sipariş iptal edildiğinde belirlediğim numaralı SMS ile
-                                                    bilgilendir:</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_order_refund_to_admin_control" id="netgsm_switch6" type="checkbox" onchange="netgsm_field_onoff(6)" value="1" <?php if ((get_option('netgsm_order_refund_to_admin_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field6" style="<?php if ((get_option('netgsm_order_refund_to_admin_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-phone" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <input name="netgsm_order_refund_to_admin_no" id="netgsm_order_refund_to_admin_no" type="text" class="form-control" placeholder="Sms gönderilecek numaraları giriniz. Örn: 05xxXXXxxXX,05xxXXXxxXX" value="<?= esc_html(get_option("netgsm_order_refund_to_admin_no")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_order_refund_to_admin_no"></p>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <div class="input-group-addon hoverlay" onclick="settingOpen('conf5')">
-                                                            <a href="javascript:void(0)">
-                                                                <i class="fa fa-cogs" id="conf5_color" style="color: <?php if (esc_textarea(get_option("netgsm_order_refund_to_admin_json")) != '') {
-                                                                                                                            echo '#17A2B8';
-                                                                                                                        } else {
-                                                                                                                            echo '#2B2B2B';
-                                                                                                                        } ?>;"></i>
-                                                            </a>
-                                                        </div>
-                                                        <textarea name="netgsm_order_refund_to_admin_text" id="netgsm_textarea6" class="form-control" placeholder="Sayın yönetici, [uye_adi][uye_soyadi] kullanıcısı, [urun] ürününü '[iade_nedeni]' nedeninden dolayı iptal etmiştir."><?= esc_html(get_option("netgsm_order_refund_to_admin_text")) ?></textarea>
-                                                        <input type="hidden" id="netgsm_order_refund_to_admin_json" name="netgsm_order_refund_to_admin_json" class="form-control" value="<?= esc_html(get_option("netgsm_order_refund_to_admin_json")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_tags_text6" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- stoga urun girdiginde sms gonder -->
-                                <div class="form-group">
-                                    <!--  ürün stoğa girdiğinde bekleme listesindekilere sms gönder-->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_neworder_to_admin_no">
-                                                    <i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    <i class="fa fa-certificate" style="color: #F79500;"></i>
-                                                    Ürün stoğa girdiğinde bekleme listesindekilere sms gönder(Wc Waitlist): </label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_product_waitlist1_control" id="netgsm_switch8" type="checkbox" onchange="netgsm_field_onoff(8)" value="1" <?php if ((get_option('netgsm_product_waitlist1_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field8" style="<?php if ((get_option('netgsm_product_waitlist1_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <div class="input-group-addon hoverlay" onclick="settingOpen('conf6')">
-                                                            <a href="javascript:void(0)">
-                                                                <i class="fa fa-cogs" id="conf6_color" style="color: <?php if (esc_textarea(get_option("netgsm_product_waitlist1_json")) != '') {
-                                                                                                                            echo '#17A2B8';
-                                                                                                                        } else {
-                                                                                                                            echo '#2B2B2B';
-                                                                                                                        } ?>;"></i>
-                                                            </a>
-                                                        </div>
-                                                        <textarea name="netgsm_product_waitlist1_text" id="netgsm_textarea8" class="form-control" placeholder="Sayın [uye_adi][uye_soyadi], [urun_adi] ürünü tekrar stoğa girmiştir. Bilginize."><?= esc_html(get_option("netgsm_product_waitlist1_text")) ?></textarea>
-                                                        <input type="hidden" id="netgsm_product_waitlist1_json" name="netgsm_product_waitlist1_json" class="form-control" value="<?= esc_html(get_option("netgsm_product_waitlist1_json")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_tags_text8" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- sepette urun unutuldugunda -->
-                                <div class="form-group">
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_abandoned_card_sms"><i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    Sepette urun unutuldugunda Müşteriye SMS gönder:</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_abandoned_card_sms_admin_control" id="netgsm_switch13" type="checkbox" onchange="netgsm_field_onoff(13)" value="1" <?php if ((get_option('netgsm_abandoned_card_sms_admin_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field13" style="<?php if ((get_option('netgsm_abandoned_card_sms_admin_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-hourglass" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <input name="netgsm_abandoned_cart_periyod" id="netgsm_abandoned_cart_periyod" type="number" class="form-control" placeholder="Ürün sepette bekleme süresi (saat) Örn: 5 (default 24 saat)" value="<?= esc_html(get_option("netgsm_abandoned_cart_periyod")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_abandoned_cart_periyod"></p>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-bell" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <input name="netgsm_abandoned_cart_smslimit" id="netgsm_abandoned_cart_smslimit" type="number" class="form-control" placeholder="yukari belirtilen periyotda toplam kac sms gitsin" value="<?= esc_html(get_option("netgsm_abandoned_cart_smslimit")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_abandoned_cart_smslimit"></p>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <textarea name="netgsm_abandoned_cart_to_admin_text" id="netgsm_textarea13" class="form-control" placeholder="Merhaba [uye_adi][uye_soyadi] Sepetinizde ürün kaldi! Fırsat bitmeden hemen satın alın. Stoklar hızla tükeniyor!"><?= esc_html(get_option("netgsm_abandoned_cart_to_admin_text")) ?></textarea>
-                                                        <input type="hidden" id="netgsm_abandoned_cart_to_admin_json" name="netgsm_abandoned_cart_to_admin_json" class="form-control" value="<?= esc_html(get_option("netgsm_abandoned_cart_to_admin_json")) ?>">
-                                                    </div>
-                                                    <p id="netgsm_tags_text13" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="col-sm-2"></div>
-                                    <div class="col-sm-10 text-right">
-                                        <button class="btn btn-primary" id="login_save3" name="login_save3" onclick="login();"><i class="fa fa-folder"></i> Değişiklikleri
-                                            Kaydet
-                                        </button>
-                                    </div>
-                                </div>
-
+                            </div>
+                            <div style="display:flex;justify-content:flex-end;margin-top:22px;">
+                                <button type="submit" class="vx-btn vx-btn-primary" id="login_save3" name="login_save3" onclick="login();"><i class="ti ti-device-floppy"></i> Değişiklikleri Kaydet</button>
+                            </div>
+                            </div>
                             </div>
 
                             <div class="tab-pane container-fluid" id="tf2sms">
-                                <hr>
-                                <div class="form-group">
-                                    <!--  Sipariş iptal edildiğinde belirlediğim numaralı sms ile bilgilendir -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_neworder_to_admin_no">
-                                                    <i class="fa fa-certificate" style="color: #3498DB;"></i>
-                                                    <i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    <i class="fa fa-certificate" style="color: #E74C3C;"></i> Yeni
-                                                    üye olurken <b style="color: #E74C3C;" data-toggle="tooltip" data-placement="top" title="OTP SMS paketinden ücretlendirilir. OTP SMS paketizin olduğuna emin olun.">OTP
-                                                        SMS</b> ile doğrulama yap :</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_tf2_auth_register_control" id="netgsm_switch9" type="checkbox" onchange="netgsm_field_onoff(9)" value="1" <?php if ((get_option('netgsm_tf2_auth_register_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field9" style="<?php if ((get_option('netgsm_tf2_auth_register_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <textarea name="netgsm_tf2_auth_register_text" id="netgsm_textarea9" class="form-control" placeholder="Tek seferlik doğrulama kodunuz : [kod]
-                                            *OTP SMS tek boy gönderilebilir.
-                                            *Metin taslağı 140 karakter ile sınırlandırılmıştır." maxlength="140"><?= esc_html(get_option("netgsm_tf2_auth_register_text")) ?></textarea>
-                                                    </div>
-                                                    <p id="netgsm_tags_text9" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-sm-2">
-                                                    <p style="margin-top: 5px;">Kod geçerlilik süresi(sn):</p>
-                                                </div>
-                                                <div class="col-sm-10">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-clock-o" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <input name="netgsm_tf2_auth_register_diff" class="form-control" placeholder="Kod geçerlilik süresi (sn.) örn: 120" value="<?= esc_html(get_option("netgsm_tf2_auth_register_diff")) ?>">
-                                                    </div>
-                                                    <p>Not : Bu süre boyunca aynı numaraya tekrar kod göndermek
-                                                        istense bile gönderilmeyecektir. Süreyi saniye olarak
-                                                        yazınız. (varsayılan olarak 180sn. )</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div><div class="form-group">
-                                    <!-- OTP ad/soyad zorunlulugu aç kapa -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_switch23">
-                                                    <i class="fa fa-certificate" style="color: #3498DB;"></i>
-                                                    <i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    <i class="fa fa-certificate" style="color: #E74C3C;"></i> OTP doğrulamada <b style="color: #E74C3C;" data-toggle="tooltip" data-placement="top" title="Açıldığında kod gönderebilmek için yalnızca telefon numarası yeterli olur; ad, soyad ve e-posta zorunlu tutulmaz.">sadece telefon numarası</b> iste (ad/soyad isteme) :</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_tf2_name_optional" id="netgsm_switch23" type="checkbox" value="1" <?php if ((get_option('netgsm_tf2_name_optional')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9">
-                                            <p style="margin-top: 5px;"><i class="fa fa-info-circle" style="color: #17A2B8;"></i>
-                                                Not: Bu seçenek açıkken müşteri OTP kodunu almak için yalnızca telefon
-                                                numarasını girer; ad, soyad ve e-posta alanları zorunlu tutulmaz. Doğrulama
-                                                yine telefona gelen kod ile yapılır. SMS metninde [ad]/[soyad] değişkenleri
-                                                kullanıyorsanız bu alanlar boş görünebilir.</p>
-                                        </div>
-                                    </div>
-                                </div><div class="form-group">
-                                    <!-- Kapıda ödeme özelliği aç kapa -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_neworder_to_admin_no">
-                                                    <i class="fa fa-certificate" style="color: #3498DB;"></i>
-                                                    <i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    <i class="fa fa-certificate" style="color: #E74C3C;"></i> Kapıda ödeme işleminde <b style="color: #E74C3C;" data-toggle="tooltip" data-placement="top" title="OTP SMS paketinden ücretlendirilir. OTP SMS paketizin olduğuna emin olun.">OTP
-                                                        SMS</b> ile doğrulama yap :</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_tf2_cash_on_delivery_control" id="netgsm_switch22" type="checkbox" onchange="netgsm_field_onoff(22)" value="1" <?php if ((get_option('netgsm_tf2_cash_on_delivery_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-9" id="netgsm_field22" style="<?php if ((get_option('netgsm_tf2_cash_on_delivery_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <textarea name="netgsm_tf2_cash_on_delivery_text" id="netgsm_textarea22" class="form-control" placeholder="Tek seferlik doğrulama kodunuz : [kod]
-                                            *OTP SMS tek boy gönderilebilir.
-                                            *Metin taslağı 140 karakter ile sınırlandırılmıştır." maxlength="140"><?= esc_html(get_option("netgsm_tf2_cash_on_delivery_text")) ?></textarea>
-                                                    </div>
-                                                    <p id="netgsm_tags_text22" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-sm-2">
-                                                    <p style="margin-top: 5px;">Kod geçerlilik süresi(sn):</p>
-                                                </div>
-                                                <div class="col-sm-10">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-clock-o" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <input name="netgsm_tf2_cash_on_delivery_diff" class="form-control" placeholder="Kod geçerlilik süresi (sn.) örn: 120" value="<?= esc_html(get_option("netgsm_tf2_cash_on_delivery_diff")) ?>">
-                                                    </div>
-                                                    <p>Not : Bu süre boyunca aynı numaraya tekrar kod göndermek
-                                                        istense bile gönderilmeyecektir. Süreyi saniye olarak
-                                                        yazınız. (varsayılan olarak 180sn. )</p>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <div class="vx-page-header">
+                                    <div class="vx-page-header-icon"><i class="ti ti-user-check"></i></div>
+                                    <div class="vx-page-header-text">
+                                        <h2 class="vx-page-header-title">Üyelik Doğrulama</h2>
+                                        <p class="vx-page-header-subtitle">OTP ve 2FA ile güvenli doğrulama</p>
                                     </div>
                                 </div>
+                                <div class="vx-screen">
+                                    <div class="vx-note vx-note-neutral" style="margin-bottom:20px;">
+                                        <p style="font-weight:700;color:var(--text-primary);margin:0 0 8px;">Bu özelliği test ettikten sonra kullanmaya başlayın</p>
+                                        <ul>
+                                            <li>Bu özelliği kullanabilmeniz için OTP SMS paketinizin olması gereklidir. <a href="https://portal.netgsm.com.tr/" target="_blank">portal.netgsm.com.tr</a> adresinden paket satın alabilirsiniz.</li>
+                                            <li>Bu özellikler WooCommerce e-ticaret eklentisi yüklü ve etkin olduğunda çalışır. WooCommerce kayıt olma sayfasında geçerlidir.</li>
+                                            <li>Kayıtlı telefon numarasını engelleme seçeneğindeki metin uyarı olarak gösterilecektir; SMS gönderimi için değildir.</li>
+                                            <li>OTP SMS kuralları için <a href="https://www.netgsm.com.tr/dokuman/#otp-sms" target="_blank">netgsm.com.tr/dokuman/#otp-sms</a> adresini ziyaret edebilirsiniz.</li>
+                                            <li>Satır atlamak için <b>\n</b> kullanabilirsiniz.</li>
+                                        </ul>
+                                    </div>
 
-                                <div class="form-group">
-                                    <!--  Sipariş iptal edildiğinde belirlediğim numaralı sms ile bilgilendir -->
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="">
-                                                    <i class="fa fa-certificate" style="color: #3498DB;"></i>
-                                                    <i class="fa fa-certificate" style="color: #BB77AE;"></i>
-                                                    <i class="fa fa-certificate" style="color: #2ECC71;"></i>
-                                                    Kayıtlı telefon numarası ile yeni üyeliği engelle :</label>
+                                    <?php $ngsm_otp_reg = (get_option('netgsm_tf2_auth_register_control') == 1); ?>
+                                    <div class="vx-secbox">
+                                        <div class="vx-sec-header vx-sec-header-toggle">
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <i class="ti ti-user-plus vx-sec-icon"></i>
+                                                <h3>Yeni üye kaydında OTP SMS ile doğrula</h3>
+                                                <span class="vx-tip"><i class="ti ti-info-circle"></i><span class="vx-tip-bubble">OTP SMS paketinden ücretlendirilir. OTP SMS paketiniz olduğuna emin olun.</span></span>
                                             </div>
-                                            <div class="col-sm-5">
-                                                <label class="switch">
-                                                    <input name="netgsm_tf2_auth_register_phone_control" id="netgsm_switch10" type="checkbox" onchange="netgsm_field_onoff(10)" value="1" <?php if ((get_option('netgsm_tf2_auth_register_phone_control')) == 1) { ?>checked <?php } ?>>
-                                                    <span class="slider round"></span>
-                                                </label>
+                                            <label class="vx-switch">
+                                                <input name="netgsm_tf2_auth_register_control" id="netgsm_switch9" type="checkbox" onchange="netgsm_field_onoff(9)" value="1" <?php checked($ngsm_otp_reg); ?>>
+                                                <span class="vx-switch-track"></span>
+                                            </label>
+                                        </div>
+                                        <p class="vx-sec-desc" style="margin-left:28px;">Yeni üye olurken telefona doğrulama kodu gönderilir.</p>
+                                        <div id="netgsm_field9" class="vx-sec-reveal" style="<?php echo $ngsm_otp_reg ? '' : 'display:none;'; ?>">
+                                            <div class="vx-field">
+                                                <label for="netgsm_textarea9">Mesaj şablonu</label>
+                                                <textarea name="netgsm_tf2_auth_register_text" id="netgsm_textarea9" rows="2" class="vx-textarea" maxlength="140" placeholder="Tek seferlik doğrulama kodunuz : [kod]&#10;*OTP SMS tek boy gönderilebilir.&#10;*Metin taslağı 140 karakter ile sınırlandırılmıştır."><?= esc_textarea(get_option("netgsm_tf2_auth_register_text")) ?></textarea>
+                                            </div>
+                                            <p class="vx-chip-caption">Değişken eklemek için tıklayın:</p>
+                                            <p id="netgsm_tags_text9" class="vx-chip-list"></p>
+                                            <div class="vx-field" style="max-width:320px;margin-top:8px;">
+                                                <label for="netgsm_reg_diff">Kod geçerlilik süresi (sn)</label>
+                                                <input type="number" name="netgsm_tf2_auth_register_diff" id="netgsm_reg_diff" class="vx-input" placeholder="örn: 120" value="<?= esc_attr(get_option("netgsm_tf2_auth_register_diff")) ?>">
+                                                <span class="vx-help">Bu süre boyunca aynı numaraya tekrar kod gönderilmez. (varsayılan 180sn.)</span>
                                             </div>
                                         </div>
-                                        <div class="col-sm-9" id="netgsm_field10" style="<?php if ((get_option('netgsm_tf2_auth_register_phone_control')) != 1) { ?>display:none; <?php } ?>">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="input-group">
-                                                        <div class="input-group-addon">
-                                                            <i class="fa fa-exclamation-circle" style="color: #17A2B8;"></i>
-                                                        </div>
-                                                        <textarea name="netgsm_tf2_auth_register_phone_warning_text" id="netgsm_textarea10" class="form-control" placeholder="[telefon_no] numarası ile zaten üyeliğiniz mevcut."><?= esc_html(get_option("netgsm_tf2_auth_register_phone_warning_text")) ?></textarea>
-                                                    </div>
-                                                    <p id="netgsm_tags_text10" style="margin-top: 10px"><i class="fa fa-angle-double-right"></i>
-                                                        Kullanabileceğiniz Değişkenler : </i></p> <span style="opacity: 0.7;">(Uyarı metnidir. Bu seçenekte SMS gönderilmez.) </span>
-                                                </div>
-                                            </div>
+                                    </div>
 
+                                    <?php $ngsm_otp_phoneonly = (get_option('netgsm_tf2_name_optional') == 1); ?>
+                                    <div class="vx-secbox">
+                                        <div class="vx-sec-header vx-sec-header-toggle">
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <i class="ti ti-phone vx-sec-icon"></i>
+                                                <h3>OTP doğrulamada sadece telefon numarası iste</h3>
+                                                <span class="vx-tip"><i class="ti ti-info-circle"></i><span class="vx-tip-bubble">Açıldığında kod gönderebilmek için yalnızca telefon numarası yeterli olur; ad, soyad ve e-posta zorunlu tutulmaz.</span></span>
+                                            </div>
+                                            <label class="vx-switch">
+                                                <input name="netgsm_tf2_name_optional" id="netgsm_switch23" type="checkbox" value="1" <?php checked($ngsm_otp_phoneonly); ?>>
+                                                <span class="vx-switch-track"></span>
+                                            </label>
+                                        </div>
+                                        <p class="vx-sec-desc" style="margin-left:28px;">OTP doğrulamada ad/soyad zorunlu tutulmaz.</p>
+                                        <p class="vx-help" style="margin:12px 0 0;">Bu seçenek açıkken müşteri OTP kodunu almak için yalnızca telefon numarasını girer; ad, soyad ve e-posta alanları zorunlu tutulmaz. Doğrulama yine telefona gelen kod ile yapılır. SMS metninde [ad]/[soyad] değişkenleri kullanıyorsanız bu alanlar boş görünebilir.</p>
+                                    </div>
+
+                                    <?php $ngsm_otp_cod = (get_option('netgsm_tf2_cash_on_delivery_control') == 1); ?>
+                                    <div class="vx-secbox">
+                                        <div class="vx-sec-header vx-sec-header-toggle">
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <i class="ti ti-cash vx-sec-icon"></i>
+                                                <h3>Kapıda ödemede OTP SMS ile doğrula</h3>
+                                                <span class="vx-tip"><i class="ti ti-info-circle"></i><span class="vx-tip-bubble">OTP SMS paketinden ücretlendirilir. OTP SMS paketiniz olduğuna emin olun.</span></span>
+                                            </div>
+                                            <label class="vx-switch">
+                                                <input name="netgsm_tf2_cash_on_delivery_control" id="netgsm_switch22" type="checkbox" onchange="netgsm_field_onoff(22)" value="1" <?php checked($ngsm_otp_cod); ?>>
+                                                <span class="vx-switch-track"></span>
+                                            </label>
+                                        </div>
+                                        <p class="vx-sec-desc" style="margin-left:28px;">Kapıda ödeme işleminde OTP SMS ile doğrulama yapılır.</p>
+                                        <div id="netgsm_field22" class="vx-sec-reveal" style="<?php echo $ngsm_otp_cod ? '' : 'display:none;'; ?>">
+                                            <div class="vx-field">
+                                                <label for="netgsm_textarea22">Mesaj şablonu</label>
+                                                <textarea name="netgsm_tf2_cash_on_delivery_text" id="netgsm_textarea22" rows="2" class="vx-textarea" maxlength="140" placeholder="Tek seferlik doğrulama kodunuz : [kod]&#10;*OTP SMS tek boy gönderilebilir.&#10;*Metin taslağı 140 karakter ile sınırlandırılmıştır."><?= esc_textarea(get_option("netgsm_tf2_cash_on_delivery_text")) ?></textarea>
+                                            </div>
+                                            <p class="vx-chip-caption">Değişken eklemek için tıklayın:</p>
+                                            <p id="netgsm_tags_text22" class="vx-chip-list"></p>
+                                            <div class="vx-field" style="max-width:320px;margin-top:8px;">
+                                                <label for="netgsm_cod_diff">Kod geçerlilik süresi (sn)</label>
+                                                <input type="number" name="netgsm_tf2_cash_on_delivery_diff" id="netgsm_cod_diff" class="vx-input" placeholder="örn: 120" value="<?= esc_attr(get_option("netgsm_tf2_cash_on_delivery_diff")) ?>">
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="form-group">
-                                    <div class="col-sm-2"></div>
-                                    <div class="col-sm-10 text-right">
-                                        <button class="btn btn-primary" id="login_save4" name="login_save4" onclick="login();"><i class="fa fa-folder"></i> Değişiklikleri
-                                            Kaydet
-                                        </button>
+                                    <?php $ngsm_otp_block = (get_option('netgsm_tf2_auth_register_phone_control') == 1); ?>
+                                    <div class="vx-secbox">
+                                        <div class="vx-sec-header vx-sec-header-toggle">
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <i class="ti ti-user-x vx-sec-icon"></i>
+                                                <h3>Kayıtlı telefon numarası ile yeni üyeliği engelle</h3>
+                                            </div>
+                                            <label class="vx-switch">
+                                                <input name="netgsm_tf2_auth_register_phone_control" id="netgsm_switch10" type="checkbox" onchange="netgsm_field_onoff(10)" value="1" <?php checked($ngsm_otp_block); ?>>
+                                                <span class="vx-switch-track"></span>
+                                            </label>
+                                        </div>
+                                        <p class="vx-sec-desc" style="margin-left:28px;">Aynı telefon numarasıyla ikinci üyelik açılmasını önler.</p>
+                                        <div id="netgsm_field10" class="vx-sec-reveal" style="<?php echo $ngsm_otp_block ? '' : 'display:none;'; ?>">
+                                            <div class="vx-field">
+                                                <label for="netgsm_textarea10">Uyarı metni</label>
+                                                <textarea name="netgsm_tf2_auth_register_phone_warning_text" id="netgsm_textarea10" rows="2" class="vx-textarea" placeholder="[telefon_no] numarası ile zaten üyeliğiniz mevcut."><?= esc_textarea(get_option("netgsm_tf2_auth_register_phone_warning_text")) ?></textarea>
+                                            </div>
+                                            <p class="vx-chip-caption">Uyarı metnidir, bu seçenekte SMS gönderilmez. Değişken eklemek için tıklayın:</p>
+                                            <p id="netgsm_tags_text10" class="vx-chip-list"></p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <p>
-                                    <h4><i class="fa fa-certificate" style="color: #3498DB;"></i> BU ÖZELLİĞİ TEST
-                                        ETTİKTEN SONRA KULLANMAYA BAŞLAYIN.</h4>
-                                    <br>
-                                    <h4><i class="fa fa-certificate" style="color: #E74C3C;"></i> Bu özelliği
-                                        kullanabilmeniz için OTP SMS paketinizin olması gereklidir.
-                                        https://portal.netgsm.com.tr/ adresinden paket satın alabilirsiniz.
-                                    </h4>
-                                    <br>
-                                    <h4><i class="fa fa-certificate" style="color: #BB77AE;"></i> Bu özellikler
-                                        woocommerce e-ticaret eklentisi yüklü ve etkin olduğunda çalışır.
-                                        Woocommerce kayıt olma sayfasında geçerlidir.</h4>
-                                    <br>
-                                    <h4><i class="fa fa-certificate" style="color: #2ECC71;"></i> Bu seçenekteki
-                                        metin uyarı olarak gösterilecektir. SMS gönderimi için değildir.</h4>
-                                    <br>
 
-                                    <h5>
-                                        OTP SMS kuralları için : <a href="https://www.netgsm.com.tr/dokuman/#otp-sms" target="_blank">https://www.netgsm.com.tr/dokuman/#otp-sms</a>
-                                        adresini ziyaret edebilirsiniz.
-                                    </h5>
-                                    <br>
-                                    Satır atlamak için <strong>\n</strong> kullanabilirsiniz.
+                                    <?php $ngsm_otp_fa2 = (get_option('netgsm_login_otp_control') == 1); ?>
+                                    <div class="vx-secbox">
+                                        <div class="vx-sec-header vx-sec-header-toggle">
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <i class="ti ti-shield-lock vx-sec-icon"></i>
+                                                <h3>Girişte OTP SMS ile 2FA doğrulaması</h3>
+                                                <span class="vx-tip"><i class="ti ti-info-circle"></i><span class="vx-tip-bubble">OTP SMS paketinden ücretlendirilir. Sadece "customer" rolündeki kullanıcılar için geçerlidir, site yöneticileri etkilenmez.</span></span>
+                                            </div>
+                                            <label class="vx-switch">
+                                                <input name="netgsm_login_otp_control" id="netgsm_switch24" type="checkbox" onchange="netgsm_field_onoff(24)" value="1" <?php checked($ngsm_otp_fa2); ?>>
+                                                <span class="vx-switch-track"></span>
+                                            </label>
+                                        </div>
+                                        <p class="vx-sec-desc" style="margin-left:28px;">Müşteri girişinde (login) ek güvenlik için OTP SMS istenir.</p>
+                                        <div id="netgsm_field24" class="vx-sec-reveal" style="<?php echo $ngsm_otp_fa2 ? '' : 'display:none;'; ?>">
+                                            <div class="vx-field">
+                                                <label for="netgsm_textarea24">Mesaj şablonu</label>
+                                                <textarea name="netgsm_login_otp_text" id="netgsm_textarea24" rows="2" class="vx-textarea" maxlength="140" placeholder="Giriş doğrulama kodunuz : [kod]"><?= esc_textarea(get_option("netgsm_login_otp_text")) ?></textarea>
+                                            </div>
+                                            <p id="netgsm_tags_text24" class="vx-help">Kullanabileceğiniz değişkenler: [kod] [telefon_no] [ad] [soyad] [mail] [referans_no]</p>
+                                            <div class="vx-field" style="max-width:320px;margin-top:8px;">
+                                                <label for="netgsm_fa2_diff">Kod geçerlilik süresi (sn)</label>
+                                                <input type="number" name="netgsm_login_otp_diff" id="netgsm_fa2_diff" class="vx-input" placeholder="örn: 180" value="<?= esc_attr(get_option("netgsm_login_otp_diff")) ?>">
+                                                <span class="vx-help">Müşterinin telefonuna kayıtlı numara (fatura telefonu) yoksa veya SMS gönderilemezse, güvenlik amacıyla giriş normal şekilde (2FA'sız) tamamlanır — kimse hesabından kilitlenmez.</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
+                                    <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+                                        <button type="submit" class="vx-btn vx-btn-primary" id="login_save4" name="login_save4" onclick="login();"><i class="ti ti-device-floppy"></i> Değişiklikleri Kaydet</button>
+                                    </div>
                                 </div>
                             </div>
                             <?php include 'contactform7.php' ?>
                             <?php include 'iys.php' ?>
                             <div class="tab-pane container-fluid" id="privatesms">
-                                <hr>
-                                <div class="row">
-                                    <div class="form-group">
-                                        <label class="col-sm-2 control-label" for="netgsm_user">Telefon no
-                                            : </label>
-                                        <div class="col-sm-10">
-                                            <div class="input-group">
-                                                <div class="input-group-addon">
-                                                    <i class="fa fa-phone" style="color: #17A2B8;"></i>
-                                                </div>
-                                                <input type="text" name="private_phone" id="private_phone" placeholder="Birden fazla numaraya sms göndermek isterseniz aralarına virgül (,) koyarak numaraları çoğaltabilirsiniz." class="form-control" />
-                                            </div>
-                                        </div>
+                                <div class="vx-page-header">
+                                    <div class="vx-page-header-icon"><i class="ti ti-send"></i></div>
+                                    <div class="vx-page-header-text">
+                                        <h2 class="vx-page-header-title">Özel SMS</h2>
+                                        <p class="vx-page-header-subtitle">Belirli numaralara tek seferlik gönderim</p>
                                     </div>
                                 </div>
-
-                                <div class="row">
-                                    <div class="form-group">
-                                        <label class="col-sm-2 control-label" for="private_text">Mesaj: </label>
-                                        <div class="col-sm-10">
-                                            <div class="input-group">
-                                                <div class="input-group-addon">
-                                                    <i class="fa fa-commenting" style="color: #17A2B8;"></i>
-                                                </div>
-                                                <textarea type="text" name="private_text" id="private_text" cols="5" placeholder="Göndermek istediğiniz mesaj içeriğini girin." class="form-control" /></textarea>
-                                            </div>
+                                <div class="vx-screen">
+                                    <div class="vx-secbox">
+                                        <div class="vx-sec-header">
+                                            <i class="ti ti-send vx-sec-icon"></i>
+                                            <h3>Tek seferlik SMS gönder</h3>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="form-group">
-                                        <label class="col-sm-2 control-label" for="private_text">Mesaj içerik Türü: </label>
-                                        <div class="col-sm-10">
-                                            <div class="input-group">
-                                                <div class="input-group-addon">
-                                                    <i class="fa fa-envelope" style="color: #17A2B8;"></i>
-                                                </div>
-                                                <select name="netgsm_content_type" id="netgsm_content_type" style="height: 35px; max-width: 100% ; width: 100% ;  font-size: 12px; border-color: #ccc">
-                                                    <option value=""> Mesaj içerik türü seçiniz</option>
-                                                    <option value="11"> Kampanya, tanıtım, kutlama vb. (İYS'ye bireysel kayıtlı alıcılarınıza gönderilir.) </option>
-                                                    <option value="12"> Kampanya, tanıtım, kutlama vb. (İYS'ye tacir kayıtlı alıcılarınıza gönderilir.) </option>
-                                                    <option value="0"> Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.)</option>
+                                        <p class="vx-sec-desc">Belirli numaralara anlık mesaj gönderin.</p>
+                                        <hr class="vx-sec-rule">
+                                        <div class="vx-grid-2" style="margin-top:16px;">
+                                            <div class="vx-field">
+                                                <label for="private_phone">Telefon No</label>
+                                                <input type="text" name="private_phone" id="private_phone" class="vx-input" placeholder="Birden fazla numara için virgül (,) kullanın">
+                                            </div>
+                                            <div class="vx-field">
+                                                <label for="netgsm_content_type">Mesaj İçerik Türü</label>
+                                                <select name="netgsm_content_type" id="netgsm_content_type" class="vx-select">
+                                                    <option value="">Mesaj içerik türü seçiniz</option>
+                                                    <option value="11">Kampanya, tanıtım, kutlama vb. (İYS'ye bireysel kayıtlı alıcılarınıza gönderilir.)</option>
+                                                    <option value="12">Kampanya, tanıtım, kutlama vb. (İYS'ye tacir kayıtlı alıcılarınıza gönderilir.)</option>
+                                                    <option value="0">Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.)</option>
                                                 </select>
+                                                <span class="vx-help">Hesabınıza tanımlı marka kodunuz yoksa Bilgilendirme/kargo/şifre türü seçilmelidir.</span>
                                             </div>
-                                            <small>*<i> Hesabınıza tanımlı marka kodunuz bulunmuyorsa Bilgilendirme, kargo, şifre vb. (İYS'den sorgulanmaz.) seçilmelidir.</i></small>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12 text-right">
-                                        <button type="button" class="btn btn-success" onclick="privatesmsSend()" name="sendSMS" id="sendSMS"><i class="fa fa-paper-plane"></i> SMS
-                                            Gönder
-                                        </button>
+                                        <div class="vx-field" style="margin-top:18px;">
+                                            <label for="private_text">Mesaj</label>
+                                            <textarea name="private_text" id="private_text" rows="4" class="vx-textarea" placeholder="Göndermek istediğiniz mesaj içeriğini girin."></textarea>
+                                        </div>
+                                        <div style="display:flex;justify-content:flex-end;margin-top:22px;">
+                                            <button type="button" class="vx-btn vx-btn-primary" onclick="privatesmsSend()" name="sendSMS" id="sendSMS"><i class="ti ti-send"></i> SMS Gönder</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="tab-pane container-fluid" id="bulksms">
-
-                                <hr>
-
-
-
-                                <div class="form-group">
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <div class="col-sm-7">
-                                                <label class="control-label" for="netgsm_rehber_add">Telefon Meta
-                                                    anahtarı</label>
-                                            </div>
-                                            <div class="col-sm-5">
-                                            </div>
+                                <div class="vx-page-header">
+                                    <div class="vx-page-header-icon"><i class="ti ti-messages"></i></div>
+                                    <div class="vx-page-header-text">
+                                        <h2 class="vx-page-header-title">Toplu SMS</h2>
+                                        <p class="vx-page-header-subtitle">Kayıtlı kullanıcılara toplu gönderim</p>
+                                    </div>
+                                </div>
+                                <div class="vx-screen">
+                                    <?php
+                                    $netgsm_contact_meta_key = 'billing_phone';
+                                    if (esc_html(get_option("netgsm_contact_meta_key")) != '') {
+                                        $netgsm_contact_meta_key = esc_html(get_option("netgsm_contact_meta_key"));
+                                    }
+                                    ?>
+                                    <div class="vx-secbox">
+                                        <div class="vx-sec-header">
+                                            <i class="ti ti-settings vx-sec-icon"></i>
+                                            <h3>Telefon alanı ayarı</h3>
                                         </div>
-                                        <div class="col-sm-9">
-                                            <div class="row">
-                                                <div class="col-sm-12">
-                                                    <div class="row">
-                                                        <div class="col-md-4">
-                                                            <?php
-                                                            $netgsm_contact_meta_key = 'billing_phone';
+                                        <p class="vx-sec-desc">Toplu gönderimde numaraların okunacağı meta anahtarını belirleyin.</p>
+                                        <hr class="vx-sec-rule">
+                                        <div style="display:flex;align-items:flex-end;gap:12px;margin-top:16px;flex-wrap:wrap;">
+                                            <div class="vx-field" style="max-width:320px;">
+                                                <label for="netgsm_contact_meta_key">Telefon Meta Anahtarı</label>
+                                                <input type="text" value="<?= esc_attr($netgsm_contact_meta_key) ?>" class="vx-input vx-input-sm" name="netgsm_contact_meta_key" id="netgsm_contact_meta_key" placeholder="Telefon meta anahtarı">
+                                                <span class="vx-help">Varsayılan WooCommerce telefon anahtarı billing_phone kullanılır.</span>
+                                            </div>
+                                            <button type="button" class="vx-btn vx-btn-primary" id="netgsm_meta_key_save" onclick="saveContactMetaKeyAjax();"><i class="ti ti-device-floppy"></i> Kaydet</button>
+                                        </div>
+                                    </div>
 
-                                                            if (esc_html(get_option("netgsm_contact_meta_key")) != '') {
-                                                                $netgsm_contact_meta_key = esc_html(get_option("netgsm_contact_meta_key"));
-                                                            }
-                                                            ?>
-                                                            <input type="text" value="<?= esc_attr($netgsm_contact_meta_key) ?>" class="form-control" name="netgsm_contact_meta_key" id="netgsm_contact_meta_key" placeholder="Telefon meta anahtarı">
-                                                        </div>
-
-                                                        <div class="col-md-2 text-left">
-                                                            <button class="btn btn-primary" id="login_save10" name="login_save10" onclick="login();"><i class="fa fa-folder"></i> Kaydet
-                                                            </button>
-                                                        </div>
-                                                        <div class="col-md-5 text-left">
-                                                            <div class="alert alert-warning">
-                                                                <span class="close" style="cursor: context-menu;" title="Bilgi"><i class="fa fa-info"></i></span>
-                                                                Aşağıdaki tabloda, telefon
-                                                                numaraları için burada kaydedilmiş olan meta
-                                                                anahtarı değerine bakılacaktır. Varsayılan olarak
-                                                                woocommerce telefon anahtarı <b>billing_phone </b>
-                                                                kullanılmaktadır.
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                    <div class="vx-secbox" style="margin-top:16px;">
+                                        <div class="vx-sec-header" style="justify-content:space-between;">
+                                            <div>
+                                                <div style="display:flex;align-items:center;gap:9px;">
+                                                    <i class="ti ti-users vx-sec-icon"></i>
+                                                    <h3>Kullanıcılar</h3>
                                                 </div>
+                                                <p class="vx-sec-desc">Listeden seçtiğiniz kayıtlı kullanıcılara toplu SMS gönderin.</p>
                                             </div>
+                                            <button type="button" class="vx-btn vx-btn-primary" onclick="netgsm_sendSMS_bulkTab('')"><i class="ti ti-send"></i> SMS Gönder</button>
                                         </div>
-                                    </div>
-                                </div>
-
-
-                                <div class="row">
-                                    <div class="col-md-12 text-right">
-
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <a href="javascript:void(0)" class="btn btn-success" style="float: right; margin-bottom: 8px;" onclick="netgsm_sendSMS_bulkTab('')"><i class="fa fa-paper-plane"></i> SMS Gönder</a>
                                         <?php
                                         // Kullanıcı listesi, tüm kullanıcıları belleğe/HTML'e basmak yerine
                                         // sunucu taraflı sayfalama (AJAX) ile parça parça yüklenir.
                                         // Bkz: wp_ajax_netgsm_users_datatable (index.php)
                                         ?>
-                                        <table
-                                            id="table" name="table"
-                                            class="table table-bordered table-striped dataTable no-footer"
-                                            data-toggle="table"
-                                            data-pagination="true"
-                                            data-side-pagination="server"
-                                            data-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>"
-                                            data-method="post"
-                                            data-query-params="netgsmUsersQueryParams"
-                                            data-unique-id="userid"
-                                            data-maintain-meta-data="true"
-                                            data-search="true" data-search-align="left"
-                                            data-pagination-v-align="bottom"
-                                            data-click-to-select="true"
-                                            data-page-size="25"
-                                            data-page-list="[10, 25, 50, 100, 150, 200]">
-                                            <thead>
-                                                <tr>
-                                                    <th data-checkbox="true"></th>
-                                                    <th data-field="userid" data-visible="false">userid</th>
-                                                    <th data-field="username" data-formatter="netgsmUserUsername">Kullanıcı adı</th>
-                                                    <th data-field="name">İsim</th>
-                                                    <th data-field="email" data-formatter="netgsmUserEmail">E-posta</th>
-                                                    <th data-field="phone" data-formatter="netgsmUserPhone" class="manage-column column-phone">Telefon</th>
-                                                </tr>
-                                            </thead>
-                                        </table>
+                                        <div class="vx-bstable-wrap" style="margin-top:16px;">
+                                            <table
+                                                id="table" name="table"
+                                                class="table table-bordered table-striped dataTable no-footer"
+                                                data-toggle="table"
+                                                data-pagination="true"
+                                                data-side-pagination="server"
+                                                data-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>"
+                                                data-method="post"
+                                                <?php // bootstrap-table varsayilan olarak JSON govde gonderir; PHP JSON govdeyi
+                                                      // $_POST'a koymadigi icin admin-ajax.php "action" parametresini goremeyip
+                                                      // 400 donuyordu. Form-encoded gonderim bunu cozer. ?>
+                                                data-content-type="application/x-www-form-urlencoded"
+                                                data-query-params="netgsmUsersQueryParams"
+                                                data-unique-id="userid"
+                                                data-maintain-meta-data="true"
+                                                data-search="true" data-search-align="left"
+                                                data-pagination-v-align="bottom"
+                                                data-click-to-select="true"
+                                                data-page-size="25"
+                                                data-page-list="[10, 25, 50, 100, 150, 200]">
+                                                <thead>
+                                                    <tr>
+                                                        <th data-checkbox="true"></th>
+                                                        <th data-field="userid" data-visible="false">userid</th>
+                                                        <th data-field="username" data-formatter="netgsmUserUsername">Kullanıcı adı</th>
+                                                        <th data-field="name">İsim</th>
+                                                        <th data-field="email" data-formatter="netgsmUserEmail">E-posta</th>
+                                                        <th data-field="phone" data-formatter="netgsmUserPhone" class="manage-column column-phone">Telefon</th>
+                                                    </tr>
+                                                </thead>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                                 <script>
+                                    function saveContactMetaKeyAjax() {
+                                        var btn = document.getElementById('netgsm_meta_key_save');
+                                        var original = btn.innerHTML;
+                                        btn.disabled = true;
+                                        btn.innerHTML = 'Kaydediliyor...';
+                                        jQuery.post(ajaxurl, {
+                                            action: 'netgsm_save_contact_meta_key',
+                                            _wpnonce: '<?php echo esc_js(wp_create_nonce('netgsm_save_contact_meta_key')); ?>',
+                                            netgsm_contact_meta_key: document.getElementById('netgsm_contact_meta_key').value
+                                        }).done(function (res) {
+                                            btn.disabled = false;
+                                            btn.innerHTML = original;
+                                            if (!res || !res.success) {
+                                                swal('Hata', 'Kaydetme başarısız oldu.', 'error');
+                                                return;
+                                            }
+                                            swal('Kaydedildi', res.data.mesaj || 'Telefon meta anahtarı kaydedildi.', 'success');
+                                        }).fail(function () {
+                                            btn.disabled = false;
+                                            btn.innerHTML = original;
+                                            swal('Hata', 'Sunucuya ulaşılamadı.', 'error');
+                                        });
+                                    }
+
                                     // bootstrap-table sunucu taraflı sayfalama parametreleri (limit/offset/search)
                                     // WordPress admin-ajax'a action + nonce ile gönderilir.
                                     function netgsmUsersQueryParams(params) {
@@ -1504,6 +1353,9 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                     }
                                 </script>
                             </div>
+                            <?php /* Gelen SMS sekmesi admin panel redesign kapsamında menüden kaldırıldı (2026-09).
+                                     Kod silinmedi, ileride geri eklenebilir. */ ?>
+                            <?php if (false) : ?>
                             <div class="tab-pane container-fluid" id="inbox">
                                 <hr>
                                 <div class="row">
@@ -1593,20 +1445,25 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                                     </div>
                                 </div>
                             </div>
-                            <?php include 'voip.php' ?>
-                            <?php include 'asistan.php' ?>
-                            <?php include 'settings.php' ?>
+                            <?php endif; /* /Gelen SMS — kapsam dışı */ ?>
+                            <?php /* Gelen Çağrılar, Netasistan, Ayarlar — admin panel redesign kapsamında
+                                     menüden kaldırıldı (2026-09). Dosyalar silinmedi, ileride geri eklenebilir. */ ?>
+                            <?php // include 'voip.php'; ?>
+                            <?php // include 'asistan.php'; ?>
+                            <?php // include 'settings.php'; ?>
 
-                        </div>
+                                </div><!-- /.tab-content -->
+                            </div><!-- /.vx-content-pad -->
+                        </div><!-- /.vx-content -->
+                    </form>
+                    </div><!-- /.vx-body -->
+                    <div class="vx-panel-footer" style="padding:14px 24px;border-top:1px solid var(--divider);font-size:13px;color:var(--text-secondary);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                        <span>version: <a href="https://wordpress.org/plugins/netgsm/" target="_blank"><?= esc_html(plugin_name_get_version()) ?></a> | <a href="https://www.netgsm.com.tr" target="_blank">Netgsm</a></span>
+                        <span>WordPress ile oluşturuldu.</span>
                     </div>
-                </form>
-                <div class="col-md-2 text-center">
-                    <hr>
-                    <p style="opacity: 0.7">version: <a href="https://wordpress.org/plugins/netgsm/" target="_blank"><?= esc_html(plugin_name_get_version()) ?></a> | <a href="https://www.netgsm.com.tr" target="_blank">Netgsm</a></p>
-                </div>
-            </div>
-        </div>
-    </div>
+                </div><!-- /.vx-panel -->
+            </div><!-- /.vx-page -->
+        </div><!-- /.vx-shell -->
     <div id="loadingmessage" style="display:none;margin: 0px; padding: 0px; position: fixed; right: 0px; top: 0px; width: 100%; height: 100%; background-color: rgb(102, 102, 102); z-index: 999999; opacity: 0.8;">
         <div style="color: white; position: absolute; top: 50%; left: 50%;transform: translate(-50%, -50%); display: inline-block;">
             <div class="text-center">
@@ -1648,8 +1505,6 @@ if ($cntrl || ($cntrl2 && $netgsm_auth_roles_control == 1)) {
                 text: "Çıkış yapılacak, onaylıyor musunuz?",
                 type: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
                 confirmButtonText: 'Evet',
                 cancelButtonText: 'Hayır',
                 buttonsStyling: true,

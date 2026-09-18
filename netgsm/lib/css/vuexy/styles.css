@@ -1,0 +1,6 @@
+/* Netgsm Vuexy Design System — global CSS entry point.
+   Consumers link this one file. Order matters: fonts → tokens → brand overrides → typography. */
+@import "./tokens/fonts.css";
+@import "./tokens/fig-tokens.css";
+@import "./tokens/brand.css";
+@import "./tokens/typography.css";
