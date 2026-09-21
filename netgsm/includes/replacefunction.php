@@ -43,6 +43,92 @@ class ReplaceFunction
         return $result;
     }
 
+    /**
+     * Siparis icin kargo firmasi ve takip numarasini cozer.
+     *
+     * Oncelik sirasi:
+     *   1. tracking_company / tracking_code siparis meta alanlari (mevcut davranis)
+     *   2. Advanced Shipment Tracking (zorem) — ast_get_tracking_items()
+     *   3. _wc_shipment_tracking_items meta (AST eski surumleri, WC Shipment Tracking)
+     *   4. kargo_firmasi / kargo_takip_no meta (eski kurulumlar)
+     *
+     * Ilk kaynakta deger bulunursa digerlerine bakilmaz; boylece mevcut
+     * kurulumlarin davranisi degismez, yalnizca bos kalan alanlar doldurulur.
+     *
+     * @param WC_Order $order
+     * @return array ['company' => string, 'code' => string]
+     */
+    public function netgsm_get_tracking_info($order)
+    {
+        $company = '';
+        $code    = '';
+
+        if (!is_object($order) || !method_exists($order, 'get_meta')) {
+            return array('company' => $company, 'code' => $code);
+        }
+
+        // 1. Eklentinin kendi meta alanlari
+        $company = $this->netgsm_tracking_scalar($order->get_meta('tracking_company'));
+        $code    = $this->netgsm_tracking_scalar($order->get_meta('tracking_code'));
+
+        // 2. Advanced Shipment Tracking (zorem)
+        if (($company === '' || $code === '') && function_exists('ast_get_tracking_items')) {
+            $items = ast_get_tracking_items($order->get_id());
+            list($company, $code) = $this->netgsm_tracking_from_items($items, $company, $code);
+        }
+
+        // 3. WooCommerce Shipment Tracking / AST eski surum meta yapisi
+        if ($company === '' || $code === '') {
+            $items = $order->get_meta('_wc_shipment_tracking_items');
+            list($company, $code) = $this->netgsm_tracking_from_items($items, $company, $code);
+        }
+
+        // 4. Eski kurulumlarda kullanilan meta anahtarlari
+        if ($company === '') {
+            $company = $this->netgsm_tracking_scalar($order->get_meta('kargo_firmasi'));
+        }
+        if ($code === '') {
+            $code = $this->netgsm_tracking_scalar($order->get_meta('kargo_takip_no'));
+        }
+
+        return array('company' => $company, 'code' => $code);
+    }
+
+    /**
+     * Takip kalemleri dizisinden firma/kod cikarir. Yalnizca bos olan alan doldurulur.
+     */
+    private function netgsm_tracking_from_items($items, $company, $code)
+    {
+        if (empty($items) || !is_array($items)) {
+            return array($company, $code);
+        }
+
+        $item = reset($items);
+        if (!is_array($item)) {
+            return array($company, $code);
+        }
+
+        if ($company === '' && !empty($item['formatted_tracking_provider'])) {
+            $company = $this->netgsm_tracking_scalar($item['formatted_tracking_provider']);
+        }
+        if ($company === '' && !empty($item['tracking_provider'])) {
+            $company = $this->netgsm_tracking_scalar($item['tracking_provider']);
+        }
+        if ($code === '' && !empty($item['tracking_number'])) {
+            $code = $this->netgsm_tracking_scalar($item['tracking_number']);
+        }
+
+        return array($company, $code);
+    }
+
+    /**
+     * Meta degerleri dizi/nesne olabilir; yalnizca skaler degerleri kabul eder.
+     */
+    private function netgsm_tracking_scalar($value)
+    {
+        return is_scalar($value) ? trim((string) $value) : '';
+    }
+
     public function netgsm_replace_add_note($data)
     {
         $istenmeyen = array('[siparis_no]', '[not]', '[uye_adi]', '[uye_soyadi]', '[uye_telefonu]', '[uye_epostasi]','[kullanici_adi]', '[siparis_toplamtutar]');

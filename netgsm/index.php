@@ -5,7 +5,7 @@ Plugin URI: https://wordpress.org/plugins/netgsm/
 Description: Netgsm hesabınız ile Woocommerce müşterileriniz yeni sipariş verdiğinde, yeni kayıt olan müşterileriniz olduğunda ve toplu smslerde kişiye özel ve yöneticilere sms gönderebileceğiniz bir eklentidir. Bunun yanısıra kişiye özel toplu ve özel sms gönderebilir, Gelen kutunuzdaki smsleri anında cevaplaya bilirsiniz. Yeni kayıt olan müşterileriniz netgsm rehberine ekleyebilir, siparişlerin durumları değiştiğinde kargo takip kodu gibi bilgileri müşterilerinize otomatik olarak gönderebilirsiniz. Ayrıca Contact Form 7 formlarınızda sms gönderimi sağlayabilirsiniz.
 Author: Netgsm
 Author URI: www.netgsm.com.tr
-Version: 2.10.0
+Version: 2.10.2
 
 
 */
@@ -2360,7 +2360,7 @@ function netgsm_ajaxRequest()
             {
                 $control         = esc_html(get_option("netgsm_order_refund_to_admin_control"));
                 $message         = sanitize_textarea_field(wp_unslash(get_option('netgsm_order_refund_to_admin_text')));
-                $message         = strip_tags($messageContent);
+                $message         = strip_tags($message);
                 $phones          = esc_html(get_option("netgsm_order_refund_to_admin_no"));
                 $netgsm_status   = esc_html(get_option("netgsm_status"));
                 $replace         = new ReplaceFunction();
@@ -2378,7 +2378,10 @@ function netgsm_ajaxRequest()
                                 'user_login' => $userinfo->user_login,
                                 'phone' => $order->billing_phone,
                                 'user_email' => $userinfo->user_email,
-                                'message' => $message
+                                'message' => $message,
+                                'siparis_tutar' => $order->get_total(),
+                                'trackingCompany' => '',
+                                'trackingCode' => ''
                             );
                             $message    = $replace->netgsm_replace_order_status_changes($data);
                             $message = $replace->netgsm_replace_order_meta_datas($order, $message);
@@ -2440,27 +2443,9 @@ function netgsm_ajaxRequest()
                             $order           = new WC_Order($order_id);
                             $orderPrice = $order->get_total();
                             $userinfo        = get_userdata($order->customer_id);
-//                            $trackingCode = '';
-//                            $trackingCompany = '';
-//                            $tracking_items = $order->get_meta('_wc_shipment_tracking_items');
-//                            if (!empty($tracking_items) && is_array($tracking_items)) {
-//                                foreach ($tracking_items as $item) {
-//                                    $trackingCompany =  $item['tracking_provider'];
-//                                    $trackingCode = $item['tracking_number'];
-//                                }
-//                            } 
-//                            foreach ($order->meta_data as $meta_datum) {
-//                                if ($meta_datum->key == 'kargo_takip_no') {
-//                                    $trackingCode = $meta_datum->value;
-//                                }
-//                                if ($meta_datum->key == 'kargo_firmasi') {
-//                                    $trackingCompany = $meta_datum->value;
-//                                }
-//                            }
-                            $trackingCompany = $order->get_meta('tracking_company');
-                            $trackingCode    = $order->get_meta('tracking_code');
-                            $trackingCompany = !empty($trackingCompany) ? $trackingCompany : '';
-                            $trackingCode    = !empty($trackingCode) ? $trackingCode : '';
+                            $trackingInfo    = $replace->netgsm_get_tracking_info($order);
+                            $trackingCompany = $trackingInfo['company'];
+                            $trackingCode    = $trackingInfo['code'];
                             if ((isset($userinfo->user_login) && $userinfo->user_login != '')) {
                                 $user_login = $userinfo->user_login;
                             } else if(!empty($order->shipping_first_name)) {
