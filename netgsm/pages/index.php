@@ -1638,7 +1638,7 @@ else {
         <div class="row">
             <div class="col-md-12">
                 <div class="alert alert-danger">
-                    <h1>Netgsm eklentisine sadece <?php print esc_html(implode($text, ', ')); ?> rollerine sahip kullanıcılar erişebilir. </h1>
+                    <h1>Netgsm eklentisine sadece <?php print esc_html(implode(', ', $text)); ?> rollerine sahip kullanıcılar erişebilir. </h1>
                 </div>
                 <div class="alert alert-info">
                     <h2><b><?php print esc_html($role_list[$session->roles[0]]) ?></b> rolüne sahip bu kullanıcı için, Yönetici hesabı ile giriş yapıp; Netgsm eklentisi > Ayarlar sekmesinden izin verebilirsiniz.</h2>

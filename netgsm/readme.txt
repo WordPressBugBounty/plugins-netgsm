@@ -4,7 +4,7 @@ Donate link: https://www.netgsm.com.tr/
 Tags: sms türkiye, toplu sms, woocommerce sms, netgsm wordpress, sms eklentisi
 Requires at least: 3.0
 Tested up to: 6.8
-Stable tag: 2.10.2
+Stable tag: 2.10.3
 Requires PHP: 7.4.33
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -95,7 +95,9 @@ WordPress yönetim paneli üzerinden;
 </ol>
 
 == Changelog ==
-= 2.10.2=
+= 2.10.3 =
+* PHP 8 kullanan sitelerde, yetkisi olmayan bir kullanıcı eklenti sayfasını açtığında oluşan hata giderildi.
+= 2.10.2 =
 * AST kargo takip destegi 
 = 2.10.1 =
 * Sipariş iptali SMS hatası giderildi, AST kargo takip desteği eklendi.
@@ -183,78 +185,6 @@ WordPress yönetim paneli üzerinden;
 * Hata düzeltmeleri
 = 2.9.42 =
 * Hata düzeltmeleri
-=======
-== Changelog ==
-= 2.10.2=
-* AST kargo takip destegi 
-= 2.10.1 =
-* Sipariş iptali SMS hatası giderildi, AST kargo takip desteği eklendi.
-= 2.10.0 =
-* Yönetim paneli baştan tasarlandı; Giriş, WooCommerce SMS, Üyelik Doğrulama, Toplu SMS, Özel SMS, Contact Form 7 SMS ve İYS ekranları yenilendi.
-* Gelen SMS, Gelen Çağrılar, Netasistan ve Ayarlar sekmeleri menüden kaldırıldı.
-* Elementor Pro form entegrasyonu eklendi. Form widget'ında "Actions After Submit > Netgsm SMS" seçilerek formdaki telefon alanına veya belirlenen sabit numaralara SMS gönderilebilir.
-* Müşteri girişinde OTP SMS ile iki adımlı doğrulama (2FA) eklendi. Yalnızca "customer" rolü için geçerlidir; SMS gönderilemezse giriş normal şekilde tamamlanır.
-* OTP SMS gönderimi Netgsm REST v2 servisine taşındı.
-* Giriş ekranında hesap doğrulama ve kaydetme işlemleri sayfa yenilenmeden yapılıyor; panelde OTP SMS paketi ve kredi bakiyesi de gösteriliyor.
-* Toplu SMS sekmesindeki kullanıcı listesinin boş görünmesi sorunu giderildi.
-= 2.9.75 =
-* Çok sayıda üyeye (ör. binlerce müşteri) sahip sitelerde eklenti ayarlar sayfası açılırken bellek yetersizliği nedeniyle oluşan "kritik hata"/beyaz ekran sorunu giderildi. Kullanıcı listeleri (Toplu SMS sekmesi) artık AJAX ile sayfa sayfa yüklenir; Gelen Kutusu, Netsantral raporu ve sepeti terk SMS gönderimlerindeki kullanıcı sorguları da tüm kullanıcıları belleğe almayacak şekilde optimize edildi.
-= 2.9.74 =
-* Bazı sitelerde yönetim panelinde "Cannot redeclare" hatasına yol açan paketleme sorunu giderildi. 2.9.73 sonrası beyaz ekran/fatal error yaşayan kullanıcılar için kritik düzeltme.
-= 2.9.73 =
-* OTP doğrulamada ad/soyad zorunluluğu tercihe bağlı hale getirildi: yeni "sadece telefon numarası iste" ayarı ile müşteri yalnızca numara girerek doğrulama kodu alabilir
-= 2.9.72 =
-* IYS filtresi: Manuel SMS gönderimlerinde giriş ayarlarının override edilmesi sorunu düzeltildi
-= 2.9.71 =
-* Üye kayıt formu doğrulamasında "Undefined variable $tf2Code" PHP uyarısı giderildi (OTP doğrulama kapalı iken oluşan uyarı)
-= 2.9.70 =
-* IYS ödeme sayfası onay kutusu eklendi: classic ve block checkout için sunucu taraflı alan doğrulaması
-* IYS onay kutusunda seçili iletişim kanalına göre telefon/e-posta alanı zorunlu hale getirildi (frontend required + label güncelleme)
-* Kapıda ödeme OTP SMS özelliği block checkout desteğiyle genişletildi (wp.data store, MutationObserver, çoklu fallback)
-* Özel SMS ve Toplu SMS'te mesaj içerik türü seçiminin giriş sekmesi ayarı tarafından ezilmesi düzeltildi
-* Toplu SMS buton kilitleme ve swal promise resolve hataları düzeltildi
-* Kargo takip bilgisi meta anahtar güncellendi
-= 2.9.69 =
-* Sürüm revizasyonu
-= 2.9.68 =
-* Sürüm revizasyonu
-= 2.9.67 =
-* Sürüm revizasyonu
-= 2.9.66 =
-* Sürüm revizasyonu
-= 2.9.65 =
-* Sürüm revizasyonu
-= 2.9.64 =
-* Sürüm revizasyonu
-= 2.9.63 =
-* Sürüm revizasyonu
-= 2.9.62 =
-* Sürüm revizasyonu
-= 2.9.61 =
-* Sürüm revizasyonu
-= 2.9.60 =
-* Sürüm revizasyonu
-= 2.9.59 =
-* Missing Authorization
-= 2.9.58 =
-* Sürüm revizasyonu
-= 2.9.57 =
-* Sürüm revizasyonu
-= 2.9.56 =
-* Sürüm revizasyonu
-= 2.9.55 =
-* Sürüm revizasyonu
-= 2.9.54 =
-* login olundugunda kalan sms,otp ve bakiye bilgilerinin gosterilmesi
-= 2.9.53 =
-* Sürüm revizasyonu
-= 2.9.52 =
-* Urun stoga gelince bilgilendirme almak isteyen musteriye sms atılması
-* Sepette ürün unutan müsteriye belirtilen periyotta sms gönderilmesi(NOT:toplam kaç sms gideceği belirtilmeli defaul 2 adet)
-* Sms gonderimin iys kontrolu guncellendi
-* Gelen çağrılar ve gelen sms bölümünde müsteri olmayanlara da sms gönderiminde
-* WordPress 6.8 sürümüne uygundur
-* Uyelik dogrulama bölünde bekleme süresi saniye olarak güncellendi default 180 saniye
 = 2.9.41 =
 * Toplu SMS gönderiminde müşteri listesi sınırı kaldırıldı.
 = 2.9.40 =
@@ -275,77 +205,6 @@ WordPress yönetim paneli üzerinden;
 * Hata düzeltmesi yapıldı.
 = 2.9.32 =
 * Hata düzeltmesi yapıldı.
-== Changelog ==
-= 2.10.2=
-* AST kargo takip destegi 
-= 2.10.1 =
-* Sipariş iptali SMS hatası giderildi, AST kargo takip desteği eklendi.
-= 2.10.0 =
-* Yönetim paneli baştan tasarlandı; Giriş, WooCommerce SMS, Üyelik Doğrulama, Toplu SMS, Özel SMS, Contact Form 7 SMS ve İYS ekranları yenilendi.
-* Gelen SMS, Gelen Çağrılar, Netasistan ve Ayarlar sekmeleri menüden kaldırıldı.
-* Elementor Pro form entegrasyonu eklendi. Form widget'ında "Actions After Submit > Netgsm SMS" seçilerek formdaki telefon alanına veya belirlenen sabit numaralara SMS gönderilebilir.
-* Müşteri girişinde OTP SMS ile iki adımlı doğrulama (2FA) eklendi. Yalnızca "customer" rolü için geçerlidir; SMS gönderilemezse giriş normal şekilde tamamlanır.
-* OTP SMS gönderimi Netgsm REST v2 servisine taşındı.
-* Giriş ekranında hesap doğrulama ve kaydetme işlemleri sayfa yenilenmeden yapılıyor; panelde OTP SMS paketi ve kredi bakiyesi de gösteriliyor.
-* Toplu SMS sekmesindeki kullanıcı listesinin boş görünmesi sorunu giderildi.
-= 2.9.75 =
-* Çok sayıda üyeye (ör. binlerce müşteri) sahip sitelerde eklenti ayarlar sayfası açılırken bellek yetersizliği nedeniyle oluşan "kritik hata"/beyaz ekran sorunu giderildi. Kullanıcı listeleri (Toplu SMS sekmesi) artık AJAX ile sayfa sayfa yüklenir; Gelen Kutusu, Netsantral raporu ve sepeti terk SMS gönderimlerindeki kullanıcı sorguları da tüm kullanıcıları belleğe almayacak şekilde optimize edildi.
-= 2.9.74 =
-* Bazı sitelerde yönetim panelinde "Cannot redeclare" hatasına yol açan paketleme sorunu giderildi. 2.9.73 sonrası beyaz ekran/fatal error yaşayan kullanıcılar için kritik düzeltme.
-= 2.9.73 =
-* OTP doğrulamada ad/soyad zorunluluğu tercihe bağlı hale getirildi: yeni "sadece telefon numarası iste" ayarı ile müşteri yalnızca numara girerek doğrulama kodu alabilir
-= 2.9.72 =
-* IYS filtresi: Manuel SMS gönderimlerinde giriş ayarlarının override edilmesi sorunu düzeltildi
-= 2.9.71 =
-* Üye kayıt formu doğrulamasında "Undefined variable $tf2Code" PHP uyarısı giderildi (OTP doğrulama kapalı iken oluşan uyarı)
-= 2.9.70 =
-* IYS ödeme sayfası onay kutusu eklendi: classic ve block checkout için sunucu taraflı alan doğrulaması
-* IYS onay kutusunda seçili iletişim kanalına göre telefon/e-posta alanı zorunlu hale getirildi (frontend required + label güncelleme)
-* Kapıda ödeme OTP SMS özelliği block checkout desteğiyle genişletildi (wp.data store, MutationObserver, çoklu fallback)
-* Özel SMS ve Toplu SMS'te mesaj içerik türü seçiminin giriş sekmesi ayarı tarafından ezilmesi düzeltildi
-* Toplu SMS buton kilitleme ve swal promise resolve hataları düzeltildi
-* Kargo takip bilgisi meta anahtar güncellendi
-= 2.9.69 =
-* Sürüm revizasyonu
-= 2.9.68 =
-* Sürüm revizasyonu
-= 2.9.67 =
-* Sürüm revizasyonu
-= 2.9.66 =
-* Sürüm revizasyonu
-= 2.9.65 =
-* Sürüm revizasyonu
-= 2.9.64 =
-* Sürüm revizasyonu
-= 2.9.63 =
-* Sürüm revizasyonu
-= 2.9.62 =
-* Sürüm revizasyonu
-= 2.9.61 =
-* Sürüm revizasyonu
-= 2.9.60 =
-* Sürüm revizasyonu
-= 2.9.59 =
-* Missing Authorization
-= 2.9.58 =
-* Sürüm revizasyonu
-= 2.9.57 =
-* Sürüm revizasyonu
-= 2.9.56 =
-* Sürüm revizasyonu
-= 2.9.55 =
-* Sürüm revizasyonu
-= 2.9.54 =
-* login olundugunda kalan sms,otp ve bakiye bilgilerinin gosterilmesi
-= 2.9.53 =
-* Sürüm revizasyonu
-= 2.9.52 =
-* Urun stoga gelince bilgilendirme almak isteyen musteriye sms atılması
-* Sepette ürün unutan müsteriye belirtilen periyotta sms gönderilmesi(NOT:toplam kaç sms gideceği belirtilmeli defaul 2 adet)
-* Sms gonderimin iys kontrolu guncellendi
-* Gelen çağrılar ve gelen sms bölümünde müsteri olmayanlara da sms gönderiminde
-* WordPress 6.8 sürümüne uygundur
-* Uyelik dogrulama bölünde bekleme süresi saniye olarak güncellendi default 180 saniye
 = 2.9.31 =
 * Hata düzeltmesi yapıldı.
 = 2.9.29 =
@@ -380,23 +239,16 @@ WordPress yönetim paneli üzerinden;
 * Rehber özelliği kapatıldı.Hata düzeltmesi yapıldı
 = 2.9.11 =
 * Rehber özelliği kapatıldı.
-
 = 2.9.1 =
 * Rehber özelliği kapatıldı.
-
 = 2.8 =
 * Yetki hatası giderildi.
-
 = 2.7 =
 * Hata düzenlemesi yapıldı.
-
 = 2.6.3.1 =
 * Netasistan iletişim butonu hataları giderildi.
-
 = 2.6.3 =
 * Tema kaynaklı oluşan farklılıklar giderildi.
-
-
 
 == Screenshots ==
 1. Netgsm kullanıcı adı ve şifresi girilip hesap doğrulanır. Başlık seçilir, modül durumu açık hale getirilir ve değişikler kaydedilir.
